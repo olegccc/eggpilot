@@ -1,7 +1,6 @@
 import React from 'react';
 import Header from './Header';
-import {SwipeableDrawer, Snackbar, Button} from "@material-ui/core";
-import Drawer from './Drawer'
+import {Snackbar, Button} from "@material-ui/core";
 import networkService from '../utils/networkService'
 import {connect} from 'react-redux';
 import s from "./Layout.css";
@@ -15,20 +14,7 @@ class Layout extends React.Component {
     }
 
     state = {
-        openDrawer: false,
         message: ''
-    };
-
-    openDrawer = () => {
-        this.setState({
-            openDrawer: true
-        });
-    };
-
-    closeDrawer = () => {
-        this.setState({
-            openDrawer: false
-        });
     };
 
     componentDidUpdate(prevProps) {
@@ -49,7 +35,7 @@ class Layout extends React.Component {
         const showSnackbar = !!this.state.message;
         return (
             <div id="content" className={s.content}>
-                <Header openDrawer={this.openDrawer}/>
+                <Header/>
                 <Snackbar
                     open={showSnackbar}
                     anchorOrigin={{
@@ -63,9 +49,6 @@ class Layout extends React.Component {
                         <Button key="ok" color="secondary" size="small" onClick={this.hideMessage}>OK</Button>
                     ]}
                 />
-                <SwipeableDrawer onClose={this.closeDrawer} onOpen={this.openDrawer} open={this.state.openDrawer}>
-                    <Drawer closeDrawer={this.closeDrawer}/>
-                </SwipeableDrawer>
                 <div className={s.body}>
                     <App/>
                 </div>
