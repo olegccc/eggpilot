@@ -1,0 +1,11 @@
+.body {
+    padding: 1em;
+    background: #eee;
+    flex: 1 1;
+}
+
+.content {
+    display: flex;
+    flex: 1 1;
+    flex-direction: column;
+}

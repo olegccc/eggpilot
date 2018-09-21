@@ -1,0 +1,81 @@
+.root {
+    display: flex;
+    flex-direction: column;
+}
+
+.meters {
+    display: flex;
+    flex-direction: row;
+}
+
+.temperature {
+    flex: 1 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.humidity {
+    flex: 1 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    margin-bottom: 1em;
+    font-size: 4vw;
+    color: darksalmon;
+}
+
+.value {
+    user-select: none;
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+}
+
+.valueInt {
+    font-size: 15vw;
+    position: relative;
+}
+
+.valueAfterDot {
+    font-size: 7vw;
+    position: absolute;
+    left: 100%;
+    top: 40%;
+}
+
+.valueDimension {
+    font-size: 4vw;
+    position: absolute;
+    left: 100%;
+}
+
+.humidity .value {
+    color: rgb(11,216,11);
+}
+
+.temperature .value {
+    color: rgb(67,180,236);
+}
+
+.modules {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    display: flex;
+    flex-direction: row;
+}
+
+.module {
+    flex: 1 1;
+}
+
+.tools {
+    margin-top: 1em;
+    margin-bottom: 1em;
+
+    button {
+        margin-right: 1em;
+    }
+}

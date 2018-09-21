@@ -1,0 +1,28 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+body {
+    display: flex;
+    flex-direction: column;
+}
+#app {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Roboto'), local('Roboto-Regular'), url('roboto.woff2') format('woff2'), url('roboto.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Orbitron';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Orbitron Regular'), local('Orbitron-Regular'), url('orbitron.woff2') format('woff2'), url('orbitron.woff') format('woff');
+}
