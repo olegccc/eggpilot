@@ -4,7 +4,6 @@ import {Snackbar, Button} from "@material-ui/core";
 import networkService from '../utils/networkService'
 import {connect} from 'react-redux';
 import s from "./Layout.css";
-import App from './App';
 
 class Layout extends React.Component {
 
@@ -50,7 +49,7 @@ class Layout extends React.Component {
                     ]}
                 />
                 <div className={s.body}>
-                    <App/>
+                    {this.props.main}
                 </div>
             </div>
         );
