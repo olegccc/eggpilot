@@ -35,6 +35,9 @@ class Chart extends React.Component {
 
     c3.generate({
       bindto: '#chart',
+      size: {
+        height: '500',
+      },
       data: {
         x: 'x',
         columns,
