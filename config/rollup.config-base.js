@@ -5,14 +5,15 @@ const babel = require('rollup-plugin-babel');
 const replace = require('rollup-plugin-replace');
 const terser = require('rollup-plugin-terser').terser;
 const precss = require('precss');
+const json = require('rollup-plugin-json');
 
-module.exports = function(release) {
+module.exports = function (release) {
   const clientPlugins = [
     babel({
       include: [
-          'app/components/**/*.js',
-          'app/actions/**/*.js',
-          'app/index.js'
+        'app/components/**/*.js',
+        'app/actions/**/*.js',
+        'app/index.js'
       ],
       babelrc: false,
       presets: [
@@ -36,6 +37,7 @@ module.exports = function(release) {
       jsnext: true,
       main: true
     }),
+    json(),
     commonjs({
       include: ['node_modules/**'],
       namedExports: {
@@ -62,36 +64,42 @@ module.exports = function(release) {
           'StrictMode',
           'createElement',
           'cloneElement',
-          'createFactory'
+          'createFactory',
+          'isValidElement'
         ],
         'node_modules/prop-types/index.js': [
-            'array',
-            'bool',
-            'func',
-            'number',
-            'object',
-            'string',
-            'symbol',
-            'any',
-            'arrayOf',
-            'element',
-            'instanceOf',
-            'node',
-            'objectOf',
-            'oneOf',
-            'oneOfType',
-            'shape',
-            'exact'
+          'array',
+          'bool',
+          'func',
+          'number',
+          'object',
+          'string',
+          'symbol',
+          'any',
+          'arrayOf',
+          'element',
+          'instanceOf',
+          'node',
+          'objectOf',
+          'oneOf',
+          'oneOfType',
+          'shape',
+          'exact'
         ],
         'node_modules/immutable/dist/immutable.js': [
           'Map'
+        ],
+        'node_modules/recharts-scale/es6/index.js': [
+          'getTickValues',
+          'getNiceTickValues',
+          'getTickValuesFixedDomain'
         ]
       }
     }),
     postcss({
       modules: true,
       plugins: [
-          precss()
+        precss()
       ]
     }),
     replace({
@@ -100,8 +108,9 @@ module.exports = function(release) {
   ];
 
   const serverPlugins = [
+    json(),
     commonjs({
-      ignore: []
+      ignore: [],
     }),
     nodeResolve()
   ];
@@ -110,25 +119,35 @@ module.exports = function(release) {
     clientPlugins.push(terser());
   }
 
+  const onwarn = warning => {
+    // Silence circular dependency warning for d3
+    if (warning.code === 'CIRCULAR_DEPENDENCY' && !warning.importer.indexOf('node_modules/d3')) {
+      return
+    }
+
+    console.warn(`(!) ${warning.message}`);
+  };
+
   const ret = [{
-      input: 'app/index.js',
-      output: {
-          file: 'public/app.js',
-          format: 'iife',
-          name: 'app',
-          sourcemap: !release
-      },
-      plugins: clientPlugins
+    input: 'app/index.js',
+    output: {
+      file: 'public/app.js',
+      format: 'iife',
+      name: 'app',
+      sourcemap: !release
+    },
+    onwarn,
+    plugins: clientPlugins
   }];
 
   ret.push({
-      input: 'server/index.js',
-      output: {
-          file: 'public/server.js',
-          format: 'cjs',
-          sourcemap: !release
-      },
-      plugins: serverPlugins,
+    input: 'server/server.js',
+    output: {
+      file: 'public/server.js',
+      format: 'cjs',
+      sourcemap: !release
+    },
+    plugins: serverPlugins,
   });
 
   return ret;

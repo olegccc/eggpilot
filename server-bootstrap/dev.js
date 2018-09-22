@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const rollup = require('rollup');
 const bootstrap = require('./bootstrap');
+const mongodb = require('mongodb');
 
 const rootPath = path.resolve(__dirname, '..');
 const publicPath = path.resolve(rootPath, 'public');
@@ -44,17 +45,25 @@ const watcher = rollup.watch(watchOptions);
 watcher.on('event', event => {
   switch (event.code) {
     case 'BUNDLE_END':
-      if (event.input === 'server/index.js') {
+      if (event.input === 'server/server.js') {
         try {
           console.log('Server compilation done.');
           const Server = loadServer();
-          server = new Server();
+          const instance = new Server(false);
+          instance.initialize(mongodb).then(() => {
+            console.log('Server initialized.');
+            server = instance;
+          });
         } catch (err) {
           console.log('error', err);
         }
       } else {
         console.log('Client compilation done.');
       }
+      break;
+    case 'FATAL':
+      console.log('Compilation error');
+      console.error(event.error);
       break;
   }
 });

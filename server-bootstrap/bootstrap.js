@@ -31,18 +31,24 @@ module.exports = function(assetsPath, publicPath, getServer, release) {
 
   server.on('request', app);
 
+  app.use(express.json());
+
   app.get('/', (req, res) => {
     res.header("Content-Type", "text/html");
     res.sendFile(path.resolve(assetsPath, 'index.html'));
   });
-  ['style.css', 'roboto.woff', 'roboto.woff2', 'orbitron.woff', 'orbitron.woff2'].forEach(f => {
+  ['style.css', 'roboto.woff', 'roboto.woff2', 'orbitron.woff', 'orbitron.woff2', 'c3.css'].forEach(f => {
       const type = mime.lookup(f);
       app.get('/' + f, (req, res) => {
           res.header("Content-Type", type);
           res.sendFile(path.resolve(assetsPath, f));
       });
   });
-  (release ? ['app.js'] : ['app.js', 'app.js.map']).forEach(f => {
+  const publicFiles = ['app.js'];
+  if (!release) {
+    publicFiles.push('app.js.map');
+  }
+  publicFiles.forEach(f => {
     const type = mime.lookup(f);
     app.get('/' + f, (req, res) => {
       res.header("Content-Type", type);
@@ -50,10 +56,12 @@ module.exports = function(assetsPath, publicPath, getServer, release) {
     });
   });
 
-  app.all('/api/*', function(req, res, next) {
+  app.use('/api/*', function(req, res, next) {
     const s = getServer();
     if (s) {
       s.use(req, res, next);
+    } else {
+      next();
     }
   });
 
