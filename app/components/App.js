@@ -5,10 +5,8 @@ import Image from './Image'
 
 const App = ({
                  temperature,
-                 humidity,
-                 modulesStatus
+                 humidity
 }) => {
-    const { heater, waterPump } = modulesStatus;
     let temperature1 = Math.trunc(temperature/10)*10;
     const temperature2 = temperature-temperature1;
     temperature1 /= 10;
@@ -44,8 +42,7 @@ const App = ({
 
 const mapStateToProps = state => ({
     humidity: state.notifications.get('humidity'),
-    temperature: state.notifications.get('temperature'),
-    modulesStatus: state.notifications.get('modulesStatus')
+    temperature: state.notifications.get('temperature')
 });
 
 const mapDispatchToProps = () => ({

@@ -57,7 +57,7 @@ module.exports = function(assetsPath, publicPath, getServer, release) {
     }
   });
 
-  const port = process.env.PORT;
+  let port = process.env.PORT || (process.argv.length > 2 && Number(process.argv[2])) || 8080;
   server.listen(port, () => {
     console.log(`Listening on port ${port}!`);
   });

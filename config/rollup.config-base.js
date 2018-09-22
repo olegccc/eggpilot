@@ -121,17 +121,15 @@ module.exports = function(release) {
       plugins: clientPlugins
   }];
 
-  if (!release) {
-    ret.push({
-        input: 'server/index.js',
-        output: {
-            file: 'public/server.js',
-            format: 'cjs',
-            sourcemap: true
-        },
-        plugins: serverPlugins,
-    });
-  }
+  ret.push({
+      input: 'server/index.js',
+      output: {
+          file: 'public/server.js',
+          format: 'cjs',
+          sourcemap: !release
+      },
+      plugins: serverPlugins,
+  });
 
   return ret;
 };
