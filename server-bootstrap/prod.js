@@ -4,4 +4,5 @@ const rootPath = path.resolve(__dirname, '..');
 const publicPath = path.resolve(rootPath, 'public');
 const staticPath = path.resolve(rootPath, 'static');
 const Server = require('../public/server');
-bootstrap(staticPath, publicPath, () => new Server(), true);
+const server = new Server();
+bootstrap(staticPath, publicPath, () => server, true);
