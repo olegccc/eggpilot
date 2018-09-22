@@ -12,7 +12,7 @@ const Header = ({openDrawer, location, status}) => {
             <Toolbar>
                 <Typography variant="title">
                     <span className={s.title}>EggPilot</span>
-                    {status !== 'connected' && <span> - {status}</span>}
+                    {status && status !== 'connected' && <span> - {status}</span>}
                 </Typography>
             </Toolbar>
         </AppBar>

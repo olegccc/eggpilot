@@ -13,12 +13,20 @@ class NetworkService {
             return;
         }
         this._dispatch = dispatch;
-        this.setStatus('connecting');
+
+        // This is in order to not to display initially 'connecting' status if connection is less than 3 seconds
+        this.setStatus('');
+        setTimeout(() => {
+            if (!this._status) {
+                this.setStatus('connecting');
+            }
+        }, 3000);
+
         this.connect();
     }
 
     setStatus(status) {
-        // console.log(`connection status: ${status}`);
+        this._status = status;
         this._dispatch(Notifications.connectionStatus(status));
     }
 
