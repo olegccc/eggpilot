@@ -3,6 +3,8 @@ export default class DeviceApi {
     this._database = database;
     postTable.addDevice = this.addDevice.bind(this);
     postTable.removeDevice = this.removeDevice.bind(this);
+    postTable.updateDevice = this.updateDevice.bind(this);
+    postTable.startMeasure = this.startMeasure.bind(this);
 
     if (!production) {
       getTable.createDevice = this.createDevice.bind(this);
