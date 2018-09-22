@@ -16,6 +16,9 @@ module.exports = function(assetsPath, publicPath, getServer, release) {
   wss.on('connection', ws => {
       const s = getServer();
       if (s) {
+        if (!s.onSocketConnection) {
+          console.log('s', typeof s, s);
+        }
         s.onSocketConnection(ws).catch(err => {
           s.onSocketError(err);
         });
