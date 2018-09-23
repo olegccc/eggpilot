@@ -72,7 +72,7 @@ class NetworkService {
     this._socket.onmessage = null;
     this._socket.onopen = null;
     this._socket = null;
-    thi._deleteReceiveTimer();
+    this._deleteReceiveTimer();
   }
 
   _onSocketError() {
