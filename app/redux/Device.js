@@ -30,6 +30,15 @@ function reducer(state = defaultState, action) {
       return state.set('error', action.message || 'Error');
     case Device.STARTED:
       return state.set('started', action.started);
+    case Device.NEW_MEASURE: {
+      const { temperature, humidity } = action.measure;
+      const oldRecords = state.get('records') || [];
+      const newRecords = [...oldRecords, action.measure];
+      return state
+        .set('records', newRecords)
+        .set('temperature', temperature)
+        .set('humidity', humidity);
+    }
   }
   return state;
 }

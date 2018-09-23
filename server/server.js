@@ -18,7 +18,25 @@ export default class Server {
 
   async initialize(mongodb) {
     await this._database.initialize(mongodb);
-    this._deviceApi = new DeviceApi(this._post, this._get, this._database, this._production);
+    this._deviceApi = new DeviceApi(this._post, this._get, this._database, this._production, props => this.onDeviceChanged(props));
+  }
+
+  onDeviceChanged({deviceId, temperature, humidity, time}) {
+    for (const session of Object.values(this._sessions)) {
+      if (session.deviceId !== deviceId) {
+        continue;
+      }
+      try {
+        session.send({
+          newMeasure: {
+            temperature,
+            humidity,
+            time
+          }
+        });
+      } catch (err) {
+      }
+    }
   }
 
   async use(req, res, next) {

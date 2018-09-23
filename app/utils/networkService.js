@@ -119,6 +119,9 @@ class NetworkService {
       case 'started':
         this._dispatch(Device.updateStarted(data));
         break;
+      case 'newMeasure':
+        this._dispatch(Device.newMeasure(data));
+        break;
       default:
         break;
     }

@@ -4,6 +4,7 @@ export default class Device {
   static DEVICE_ERROR = 'DEVICE_ERROR';
   static RECORDS = 'RECORDS';
   static STARTED = 'STARTED';
+  static NEW_MEASURE = 'NEW_MEASURE';
 
   static updateMeasures({humidity, temperature}) {
     return {
@@ -38,6 +39,13 @@ export default class Device {
     return {
       type: Device.DEVICE_ERROR,
       message
+    };
+  }
+
+  static newMeasure(measure) {
+    return {
+      type: Device.NEW_MEASURE,
+      measure
     };
   }
 }

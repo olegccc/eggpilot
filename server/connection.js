@@ -34,7 +34,7 @@ export default class Controller {
         records,
         started
       });
-      this._deviceId = deviceId;
+      this._session.deviceId = deviceId;
     } catch (err) {
       this.sendData({
         deviceError: err.message || 'Device is not recognized'

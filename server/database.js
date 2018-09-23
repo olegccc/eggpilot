@@ -69,8 +69,8 @@ export default class Database {
   }
 
   async updateDevice({deviceId, temperature, humidity, time}) {
+
     if (!isValidObjectId(deviceId)) {
-      console.log('unknown device id: ', deviceId);
       throw Error('Unknown device');
     }
     const result = await this.db.collection('devices').updateOne({
@@ -85,22 +85,21 @@ export default class Database {
       throw Error('Unknown device');
     }
 
-    console.log(`update device: ${deviceId}, ${temperature}, ${humidity}, ${time}`);
-
-    if (!time) {
-      time = new Date().getTime();
-    }
-
-    console.log(`update device: ${deviceId}, ${temperature}, ${humidity}, ${time}`);
-
     await this.db.collection('history').insertOne({
       deviceId: this.ObjectId(deviceId),
       temperature,
       humidity,
       time
     });
+
+    const {
+      started
+    } = await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    });
+
     return {
-      success: true
+      timePassed: Math.floor((new Date().getTime()-started)/1000)
     };
   }
 
