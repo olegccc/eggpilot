@@ -6,8 +6,8 @@ export default class Controller {
   }
 
   onMessage(message, flags) {
-    message = JSON.parse(message);
     console.log(`socket got message: ${message}`);
+    message = JSON.parse(message);
     Object.keys(message).forEach(messageId => {
       try {
         const value = message[messageId] || {};

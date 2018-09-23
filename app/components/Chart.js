@@ -51,6 +51,11 @@ class Chart extends React.Component {
           label: {
             text: 'Humidity',
             position: 'outer-middle'
+          },
+          tick: {
+            format: function(x) {
+              return `${x.toFixed(1)}%`;
+            }
           }
         },
         y2: {
@@ -58,6 +63,11 @@ class Chart extends React.Component {
           label: {
             text: 'Temperature',
             position: 'outer-middle'
+          },
+          tick: {
+            format: function(x) {
+              return `${x.toFixed(1)}\u2103`;
+            }
           }
         },
         x: {
