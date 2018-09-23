@@ -1,5 +1,8 @@
 export default class DeviceApi {
   constructor(postTable, getTable, database, production) {
+    if (!process.env.TOKEN_ID) {
+      return;
+    }
     this._database = database;
     postTable.addDevice = this.addDevice.bind(this);
     postTable.removeDevice = this.removeDevice.bind(this);
@@ -52,7 +55,7 @@ export default class DeviceApi {
       throw Error('Unknown token id');
     }
 
-    const { deviceId } = await this._database.addDevice();
+    const { deviceId } = await this._database.addDevice({});
 
     return {
       deviceId,
@@ -70,7 +73,10 @@ export default class DeviceApi {
     });
   }
 
-  async updateDevice({deviceId, temperature, humidity}) {
+  async updateDevice({deviceId, temperature, humidity, tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
     return await this._database.updateDevice({
       deviceId, temperature, humidity
     });
