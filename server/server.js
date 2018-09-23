@@ -24,7 +24,7 @@ export default class Server {
   onDeviceChanged({deviceId, temperature, humidity, time}) {
     console.log(`device changed: ${deviceId}, temperature ${temperature}, humidity ${humidity}`);
     for (const session of Object.values(this._sessions)) {
-      if (session.deviceId !== deviceId) {
+      if (!session || session.deviceId !== deviceId) {
         continue;
       }
       try {
