@@ -34,3 +34,15 @@ body {
   width: 90%;
   margin: 1em auto;
 }
+
+#chart .c3-axis-y2 {
+  fill: rgb(67,180,236);
+}
+
+#chart .c3-axis-y {
+  fill: rgb(11, 216, 11);
+}
+
+#chart .c3-line {
+  stroke-width: 2px;
+}
