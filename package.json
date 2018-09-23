@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "watch": "rm -rf public && PORT=3333 node server-bootstrap/dev.js",
+    "watch": "rm -rf public && PORT=3333 TOKEN_ID=aaa node server-bootstrap/dev.js",
     "start": "node server-bootstrap/prod.js",
     "postinstall": "rm -rf public && rollup -c config/rollup.config.production.js && cp node_modules/c3/c3.css static/c3.css"
   },
