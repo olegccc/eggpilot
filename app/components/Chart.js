@@ -52,6 +52,9 @@ class Chart extends React.Component {
               'Temperature': 'y2'
             }
           },
+          color: {
+            pattern: ['rgb(11, 216, 11)', 'rgb(67,180,236)']
+          },
           axis: {
             y: {
               label: {
