@@ -52,7 +52,7 @@ export default class DeviceApi {
 
   async addDevice({tokenId}) {
     if (tokenId !== process.env.TOKEN_ID) {
-      throw Error('Unknown token id');
+      throw Error(`Unknown token id, got: ${tokenId} expected: ${process.env.TOKEN_ID}`);
     }
 
     const { deviceId } = await this._database.addDevice({});
