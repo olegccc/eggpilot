@@ -41,7 +41,7 @@ class Chart extends React.Component {
       data: {
         x: 'x',
         columns,
-        type: 'line',
+        type: 'spline',
         axes: {
           'Temperature': 'y2'
         }
