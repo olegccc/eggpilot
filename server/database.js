@@ -49,8 +49,7 @@ export default class Database {
       started: time
     });
     return {
-      deviceId: result.insertedId,
-      success: true
+      deviceId: result.insertedId
     };
   }
 

@@ -52,7 +52,12 @@ export default class DeviceApi {
       throw Error('Unknown token id');
     }
 
-    return await this._database.addDevice();
+    const { deviceId } = await this._database.addDevice();
+
+    return {
+      deviceId,
+      deviceUrl: `#/device/${deviceId}`
+    };
   }
 
   async removeDevice({deviceId, tokenId}) {
