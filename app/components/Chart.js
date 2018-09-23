@@ -11,6 +11,10 @@ class Chart extends React.Component {
     this._updateChart();
   }
 
+  componentWillUnmount() {
+    this._chart = undefined;
+  }
+
   _updateChart() {
 
     const columnHumidity = [
@@ -33,59 +37,66 @@ class Chart extends React.Component {
 
     const columns = [columnHumidity, columnTemperature, columnTime];
 
-    c3.generate({
-      bindto: '#chart',
-      size: {
-        height: '500',
-      },
-      data: {
-        x: 'x',
-        columns,
-        type: 'spline',
-        axes: {
-          'Temperature': 'y2'
-        }
-      },
-      axis: {
-        y: {
-          label: {
-            text: 'Humidity',
-            position: 'outer-middle'
+    if (!this._chart) {
+      this._chart =
+        c3.generate({
+          bindto: '#chart',
+          size: {
+            height: '500',
           },
-          tick: {
-            format: function(x) {
-              return `${x.toFixed(2)}%`;
+          data: {
+            x: 'x',
+            columns,
+            type: 'spline',
+            axes: {
+              'Temperature': 'y2'
             }
-          }
-        },
-        y2: {
-          show: true,
-          label: {
-            text: 'Temperature',
-            position: 'outer-middle'
           },
-          tick: {
-            format: function(x) {
-              return `${x.toFixed(2)}\u2103`;
+          axis: {
+            y: {
+              label: {
+                text: 'Humidity',
+                position: 'outer-middle'
+              },
+              tick: {
+                format: function(x) {
+                  return `${x.toFixed(2)}%`;
+                }
+              }
+            },
+            y2: {
+              show: true,
+              label: {
+                text: 'Temperature',
+                position: 'outer-middle'
+              },
+              tick: {
+                format: function(x) {
+                  return `${x.toFixed(2)}\u2103`;
+                }
+              }
+            },
+            x: {
+              tick: {
+                format: function(x) {
+                  x = Math.floor(x/1000);
+                  const sec = x % 60;
+                  x = Math.floor(x/60);
+                  const min = x % 60;
+                  x = Math.floor(x/60);
+                  const hour = x % 24;
+                  const day = Math.floor(x/24);
+                  return `${day}d ${('0'+hour).substr(-2, 2)}:${('0'+min).substr(-2, 2)}:${('0'+sec).substr(-2,2)}`;
+                }
+              }
             }
           }
-        },
-        x: {
-          tick: {
-            format: function(x) {
-              x = Math.floor(x/1000);
-              const sec = x % 60;
-              x = Math.floor(x/60);
-              const min = x % 60;
-              x = Math.floor(x/60);
-              const hour = x % 24;
-              const day = Math.floor(x/24);
-              return `${day}d ${('0'+hour).substr(-2, 2)}:${('0'+min).substr(-2, 2)}:${('0'+sec).substr(-2,2)}`;
-            }
-          }
-        }
-      }
-    });
+        });
+    } else {
+      this._chart.load({
+        columns
+      });
+    }
   }
 
   render() {
