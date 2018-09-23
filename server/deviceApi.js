@@ -83,7 +83,7 @@ export default class DeviceApi {
     const ret = await this._database.updateDevice({
       deviceId, temperature, humidity, time
     });
-    this._onDeviceChanged({ deviceId, temperature, humidity, time });
+    setTimeout(() => this._onDeviceChanged({ deviceId, temperature, humidity, time }));
     return ret;
   }
 

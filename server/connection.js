@@ -7,13 +7,18 @@ export default class Controller {
 
   onMessage(message, flags) {
     message = JSON.parse(message);
-    console.log('got message: ', message);
+    console.log(`socket got message: ${message}`);
     Object.keys(message).forEach(messageId => {
       try {
         const value = message[messageId] || {};
         switch (messageId) {
           case 'deviceId':
             this.onDeviceId(value);
+            break;
+          case 'ping':
+            this.sendData({
+              pong: true
+            });
             break;
           default:
             break;
@@ -43,6 +48,7 @@ export default class Controller {
   }
 
   sendData(data) {
+    console.log(`socket send message: ${JSON.stringify(data)}`);
     this._session.send(data);
   }
 

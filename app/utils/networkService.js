@@ -72,6 +72,7 @@ class NetworkService {
     this._socket.onmessage = null;
     this._socket.onopen = null;
     this._socket = null;
+    thi._deleteReceiveTimer();
   }
 
   _onSocketError() {
@@ -133,6 +134,8 @@ class NetworkService {
       return;
     }
 
+    this._lastMessage = new Date().getTime();
+
     if (_.isString(event.data)) {
       _.each(JSON.parse(event.data), (value, key) => {
         this._onTextData(key, value);
@@ -155,6 +158,8 @@ class NetworkService {
         deviceId: this._deviceId
       });
     }
+    this._lastMessage = new Date().getTime();
+    this._createReceiveTimer();
   }
 
   _onSocketClose() {
@@ -185,6 +190,34 @@ class NetworkService {
     this.sendCommand({
       deviceId
     });
+  }
+
+  _createReceiveTimer() {
+    this._resetReceiveTimer();
+  }
+
+  _deleteReceiveTimer() {
+    if (this._receiveTimeout) {
+      clearTimeout(this._receiveTimeout);
+      this._receiveTimeout = undefined;
+    }
+  }
+
+  _onReceiveTimer() {
+    this._receiveTimeout = undefined;
+    if (new Date().getTime() - this._lastMessage > 15000) {
+      this.closeSocket();
+      this.setStatus('reconnecting');
+      this.connect();
+      return;
+    }
+    this.sendCommand('ping');
+    this._resetReceiveTimer();
+  }
+
+  _resetReceiveTimer() {
+    this._deleteReceiveTimer();
+    this._receiveTimeout = setTimeout(() => this._onReceiveTimer(), 5000);
   }
 }
 
