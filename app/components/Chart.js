@@ -54,7 +54,7 @@ class Chart extends React.Component {
           },
           tick: {
             format: function(x) {
-              return `${x.toFixed(1)}%`;
+              return `${x.toFixed(2)}%`;
             }
           }
         },
@@ -66,7 +66,7 @@ class Chart extends React.Component {
           },
           tick: {
             format: function(x) {
-              return `${x.toFixed(1)}\u2103`;
+              return `${x.toFixed(2)}\u2103`;
             }
           }
         },
