@@ -5,6 +5,7 @@ export default class Device {
   static RECORDS = 'RECORDS';
   static STARTED = 'STARTED';
   static NEW_MEASURE = 'NEW_MEASURE';
+  static IMAGE = 'IMAGE';
 
   static updateMeasures({humidity, temperature}) {
     return {
@@ -46,6 +47,13 @@ export default class Device {
     return {
       type: Device.NEW_MEASURE,
       measure
+    };
+  }
+
+  static image(image) {
+    return {
+      type: Device.IMAGE,
+      image
     };
   }
 }

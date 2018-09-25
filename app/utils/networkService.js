@@ -86,24 +86,11 @@ class NetworkService {
     if (array.byteLength === 0) {
       return;
     }
-    console.log('received image part', data);
-    const mode = array[0];
-    if (mode === 1) {
-      this._imageBuffers = [];
-    }
-    this._imageBuffers.push(array.subarray(1));
-    if (mode !== 3) {
-      return;
-    }
-    let totalLength = this._imageBuffers.reduce((p, c) => p + c.byteLength, 0);
-    const imageArray = new Uint8Array(totalLength);
-    let offset = 0;
-    this._imageBuffers.forEach(b => {
-      imageArray.set(b, offset);
-      offset += b.byteLength;
+    console.log('received image', data);
+    const blob = new Blob([ array ], {
+      type: 'image/jpeg'
     });
-    this._imageBuffers = [];
-    this._dispatch(Notifications.image(imageArray));
+    this._dispatch(Device.image(URL.createObjectURL(blob)));
   }
 
   _onTextData(command, data) {

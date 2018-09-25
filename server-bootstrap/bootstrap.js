@@ -3,6 +3,7 @@ const path = require('path');
 const mime = require('mime-types');
 const WebSocket = require('ws');
 const http = require('http');
+const bodyParser = require('body-parser');
 
 module.exports = function(assetsPath, publicPath, getServer, release) {
 
@@ -32,6 +33,9 @@ module.exports = function(assetsPath, publicPath, getServer, release) {
   server.on('request', app);
 
   app.use(express.json());
+  app.use(bodyParser.raw({
+    type: 'application/octet-stream'
+  }));
 
   app.get('/', (req, res) => {
     res.header("Content-Type", "text/html");

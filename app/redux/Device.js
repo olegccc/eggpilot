@@ -7,7 +7,8 @@ const defaultState = Map({
   temperature: 0,
   deviceId: '',
   error: '',
-  records: []
+  records: [],
+  image: null
 });
 
 function reducer(state = defaultState, action) {
@@ -31,7 +32,7 @@ function reducer(state = defaultState, action) {
     case Device.STARTED:
       return state.set('started', action.started);
     case Device.NEW_MEASURE: {
-      const { temperature, humidity } = action.measure;
+      const {temperature, humidity} = action.measure;
       const oldRecords = state.get('records') || [];
       const newRecords = [...oldRecords, action.measure];
       return state
@@ -39,6 +40,8 @@ function reducer(state = defaultState, action) {
         .set('temperature', temperature)
         .set('humidity', humidity);
     }
+    case Device.IMAGE:
+      return state.set('image', action.image);
   }
   return state;
 }

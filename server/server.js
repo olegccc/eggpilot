@@ -21,21 +21,27 @@ export default class Server {
     this._deviceApi = new DeviceApi(this._post, this._get, this._database, this._production, props => this.onDeviceChanged(props));
   }
 
-  onDeviceChanged({deviceId, temperature, humidity, time}) {
-    console.log(`device changed: ${deviceId}, temperature ${temperature}, humidity ${humidity}`);
+  onDeviceChanged({deviceId, temperature, humidity, time, image}) {
+    if (image) {
+      console.log(`device image changed: ${deviceId}`);
+    } else {
+      console.log(`device changed: ${deviceId}, temperature ${temperature}, humidity ${humidity}`);
+    }
+    const dataPackage = image ? new Uint8Array(image) : {
+      newMeasure: {
+        temperature,
+        humidity,
+        time
+      }
+    };
+    const options = image ? { binary: true} : undefined;
     for (const session of Object.values(this._sessions)) {
       if (!session || session.deviceId !== deviceId) {
         continue;
       }
       try {
         console.log('sending update to session');
-        session.send({
-          newMeasure: {
-            temperature,
-            humidity,
-            time
-          }
-        });
+        session.send(dataPackage, options);
       } catch (err) {
       }
     }
@@ -129,6 +135,10 @@ export default class Server {
 
     if (!options && !_.isString(message)) {
       message = JSON.stringify(message);
+    }
+
+    if (options && options.binary) {
+      options = undefined;
     }
 
     return new Promise((resolve, reject) => {

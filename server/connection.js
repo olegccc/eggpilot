@@ -5,9 +5,11 @@ export default class Controller {
     this._session = session;
   }
 
-  onMessage(message, flags) {
-    console.log(`socket got message: ${message}`);
-    message = JSON.parse(message);
+  onMessage(messageText, flags) {
+    const message = JSON.parse(messageText);
+    if (!message.ping) {
+      console.log(`socket got message: ${messageText}`);
+    }
     Object.keys(message).forEach(messageId => {
       try {
         const value = message[messageId] || {};
@@ -16,7 +18,7 @@ export default class Controller {
             this.onDeviceId(value);
             break;
           case 'ping':
-            this.sendData({
+            this._session.send({
               pong: true
             });
             break;
@@ -38,6 +40,18 @@ export default class Controller {
         },
         records,
         started
+      });
+      setTimeout(async () => {
+        try {
+          const { image } = await this._database.getDeviceImage(deviceId);
+          if (!image) {
+            return;
+          }
+          this._session.send(image, {
+            binary: true
+          });
+        } catch (err) {
+        }
       });
       this._session.deviceId = deviceId;
     } catch (err) {

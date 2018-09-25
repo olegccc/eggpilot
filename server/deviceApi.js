@@ -9,6 +9,7 @@ export default class DeviceApi {
     postTable.removeDevice = this.removeDevice.bind(this);
     postTable.updateDevice = this.updateDevice.bind(this);
     postTable.startMeasure = this.startMeasure.bind(this);
+    postTable.updateImage = this.updateImage.bind(this);
 
     if (!production) {
       getTable.createDevice = this.createDevice.bind(this);
@@ -76,15 +77,34 @@ export default class DeviceApi {
   }
 
   async updateDevice({deviceId, temperature, humidity, tokenId}) {
-    if (tokenId !== process.env.TOKEN_ID) {
-      throw Error('Unknown token id');
-    }
     const time = new Date().getTime();
     const ret = await this._database.updateDevice({
       deviceId, temperature, humidity, time
     });
     setTimeout(() => this._onDeviceChanged({ deviceId, temperature, humidity, time }));
     return ret;
+  }
+
+  async updateImage(data, rest, req, res) {
+    const tokenId = req.headers['token-id'];
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+    const array = new Uint8Array(data);
+    console.log(array.byteLength);
+    const deviceId = req.headers['device-id'];
+    await this._database.updateImage({
+      deviceId,
+      image: data
+    });
+    setTimeout(() => this._onDeviceChanged({
+      deviceId,
+      image: data
+    }));
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({
+      success: true
+    }));
   }
 
   async startMeasure({deviceId, tokenId}) {

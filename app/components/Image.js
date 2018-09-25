@@ -31,16 +31,12 @@ class Image extends React.Component {
             if (!this.props.image) {
                 this.imageRef.current.src = '';
             } else {
-                const blob = new Blob([ this.props.image ], {
-                    type: 'image/jpeg'
-                });
-                this.imageRef.current.src = URL.createObjectURL(blob);
+                this.imageRef.current.src = this.props.image;
             }
         }
     }
 
     render() {
-
         const { width, height } = this.state;
 
         return <div className={s.root} style={{ height }} ref={this.rootRef}>
@@ -50,7 +46,7 @@ class Image extends React.Component {
 }
 
 const mapStateToProps = state => ({
-    image: state.notifications.get('image')
+    image: state.device.get('image')
 });
 
 export default connect(mapStateToProps)(Image);

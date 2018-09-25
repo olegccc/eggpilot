@@ -6,11 +6,12 @@ function isValidObjectId(objectId) {
 
 export default class Database {
 
-  async initialize({MongoClient, ObjectId}) {
+  async initialize({MongoClient, ObjectId, Binary}) {
     const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/eggpilot';
     const db = await MongoClient.connect(url);
     this.db = db.db();
     this.ObjectId = ObjectId;
+    this.Binary = Binary;
   }
 
   async getDeviceMeasures(deviceId) {
@@ -20,6 +21,10 @@ export default class Database {
 
     const device = await this.db.collection('devices').findOne({
       _id: this.ObjectId(deviceId)
+    }, {
+      humidity: 1,
+      temperature: 1,
+      started: 1
     });
 
     if (!device) {
@@ -37,6 +42,35 @@ export default class Database {
       temperature,
       started,
       records: records.map(({temperature, humidity, time}) => ({temperature, humidity, time}))
+    };
+  }
+
+  async getDeviceImage(deviceId) {
+    if (!isValidObjectId(deviceId)) {
+      throw Error('Unknown device');
+    }
+
+    const device = await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    }, {
+      image: 1
+    });
+
+    if (!device) {
+      throw Error('Unknown device');
+    }
+
+    const { image } = device;
+    if (!image) {
+      return {
+        image: null
+      };
+    }
+
+    const buffer = image.read(0, image.length());
+
+    return {
+      image: buffer
     };
   }
 
@@ -101,6 +135,27 @@ export default class Database {
     return {
       timePassed: Math.floor((new Date().getTime()-started)/1000)
     };
+  }
+
+  async updateImage({deviceId, image}) {
+    if (!isValidObjectId(deviceId)) {
+      throw Error('Unknown device');
+    }
+
+    const device = await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    });
+
+    const result = await this.db.collection('devices').updateOne({
+      _id: this.ObjectId(deviceId)
+    }, {
+      $set: {
+        image: this.Binary(image)
+      }
+    });
+    if (result.modifiedCount !== 1) {
+      throw Error('Unknown device');
+    }
   }
 
   async startMeasure({deviceId}) {
