@@ -107,6 +107,14 @@ export default class Database {
     if (!isValidObjectId(deviceId)) {
       throw Error('Unknown device');
     }
+    const device = await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    }, {
+      started: 1
+    });
+    if (!device || !device.started) {
+      throw Error('Unknown device');
+    }
     const result = await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
@@ -115,9 +123,6 @@ export default class Database {
         humidity
       }
     });
-    if (result.modifiedCount !== 1) {
-      throw Error('Unknown device');
-    }
 
     await this.db.collection('history').insertOne({
       deviceId: this.ObjectId(deviceId),
