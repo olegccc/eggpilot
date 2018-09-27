@@ -9,6 +9,7 @@ export default class DeviceApi {
     postTable.removeDevice = this.removeDevice.bind(this);
     postTable.updateDevice = this.updateDevice.bind(this);
     postTable.startMeasure = this.startMeasure.bind(this);
+    postTable.stopMeasure = this.stopMeasure.bind(this);
     postTable.updateImage = this.updateImage.bind(this);
 
     if (!production) {
@@ -71,18 +72,40 @@ export default class DeviceApi {
       throw Error('Unknown token id');
     }
 
-    return await this._database.removeDevice({
+    await this._database.removeDevice({
       deviceId
     });
+
+    setTimeout(() => this._onDeviceChanged({
+      deviceId,
+      started: null,
+      stopped: null,
+      imageTime: null,
+      measureTime: null
+    }));
+
+    return {
+      success: true
+    };
   }
 
   async updateDevice({deviceId, temperature, humidity, tokenId}) {
     const time = new Date().getTime();
-    const ret = await this._database.updateDevice({
+    const {
+      started,
+    } = await this._database.updateDevice({
       deviceId, temperature, humidity, time
     });
-    setTimeout(() => this._onDeviceChanged({ deviceId, temperature, humidity, time }));
-    return ret;
+    setTimeout(() => this._onDeviceChanged({
+      deviceId,
+      newMeasure: {
+        temperature,
+        humidity,
+      }
+    }));
+    return {
+      started: started - new Date().getTime()
+    };
   }
 
   async updateImage(data, rest, req, res) {
@@ -112,6 +135,43 @@ export default class DeviceApi {
       throw Error('Unknown token id');
     }
 
-    return await this._database.startMeasure({deviceId});
+    const time = new Date().getTime();
+
+    await this._database.startMeasure({deviceId});
+
+    setTimeout(() => this._onDeviceChanged({
+      deviceId,
+      temperature: null,
+      humidity: null,
+      measureTime: null,
+      imageTime: null,
+      stopped: null,
+      started: 0
+    }));
+
+    return {
+      success: true
+    };
+  }
+
+  async stopMeasure({deviceId, tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+
+    await this._database.stopMeasure({deviceId});
+
+    setTimeout(() => this._onDeviceChanged({
+      deviceId,
+      temperature: null,
+      humidity: null,
+      measureTime: null,
+      imageTime: null,
+      stopped: 0
+    }));
+
+    return {
+      success: true
+    };
   }
 }

@@ -33,7 +33,9 @@ class Device extends React.Component {
       humidity,
       routerDeviceId,
       deviceId,
-      deviceError
+      deviceError,
+      sinceStarted,
+      sinceStopped
     } = this.props;
 
     if (deviceId !== routerDeviceId) {
@@ -52,6 +54,9 @@ class Device extends React.Component {
     const humidity2 = humidity - humidity1;
     humidity1 /= 10;
     return (<div className={s.root}>
+      <div className={s.stats}>
+        Started: {sinceStarted}; Stopped: {sinceStopped}
+      </div>
       <div className={s.meters}>
         <div className={s.temperature}>
           <div className={s.title}>Temperature</div>
@@ -85,7 +90,9 @@ const mapStateToProps = (state, props) => ({
   temperature: state.device.get('temperature'),
   deviceId: state.device.get('deviceId'),
   routerDeviceId: props.routeParams.deviceId,
-  deviceError: state.device.get('error')
+  deviceError: state.device.get('error'),
+  sinceStarted: state.device.get('sinceStarted'),
+  sinceStopped: state.device.get('sinceStopped')
 });
 
 const mapDispatchToProps = dispatch => ({

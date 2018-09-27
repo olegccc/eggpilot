@@ -3,22 +3,16 @@ export default class Device {
   static DEVICE_ID = 'DEVICE_ID';
   static DEVICE_ERROR = 'DEVICE_ERROR';
   static RECORDS = 'RECORDS';
-  static STARTED = 'STARTED';
   static NEW_MEASURE = 'NEW_MEASURE';
   static IMAGE = 'IMAGE';
+  static TIME_STATS = 'TIME_STATS';
+  static UPDATE_MEASURE_TIME = 'UPDATE_MEASURE_TIME';
 
   static updateMeasures({humidity, temperature}) {
     return {
       type: Device.MEASURES,
       humidity,
       temperature
-    };
-  }
-
-  static updateStarted(started) {
-    return {
-      type: Device.STARTED,
-      started
     };
   }
 
@@ -50,10 +44,31 @@ export default class Device {
     };
   }
 
+  static timeStats(stats) {
+    const time = new Date().getTime();
+    for (const key of Object.keys(stats)) {
+      const value = stats[key];
+      if (value === null) {
+        continue;
+      }
+      stats[key] = value + time;
+    }
+    return {
+      type: Device.TIME_STATS,
+      stats
+    };
+  }
+
   static image(image) {
     return {
       type: Device.IMAGE,
       image
+    };
+  }
+
+  static updateMeasureTime() {
+    return {
+      type: Device.UPDATE_MEASURE_TIME
     };
   }
 }

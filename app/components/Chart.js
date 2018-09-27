@@ -1,6 +1,7 @@
 import React from 'react'
 import c3 from 'c3';
 import {connect} from 'react-redux';
+import s from "./Device.css";
 
 class Chart extends React.Component {
   componentDidMount() {
@@ -27,12 +28,12 @@ class Chart extends React.Component {
 
     const columnTime = ['x'];
 
-    const {records, started} = this.props;
+    const {records} = this.props;
 
     for (const record of records) {
       columnHumidity.push(record.humidity/10);
       columnTemperature.push(record.temperature/10);
-      columnTime.push(record.time-started);
+      columnTime.push(record.time);
     }
 
     const columns = [columnHumidity, columnTemperature, columnTime];
@@ -103,13 +104,17 @@ class Chart extends React.Component {
   }
 
   render() {
-    return (<div id="chart" />);
+    const {lastMeasure} = this.props;
+    return <div className={s.root}>
+      <div className={s.stats}>Last measure: {lastMeasure}</div>
+      <div id="chart" />
+    </div>;
   }
 }
 
 const mapStateToProps = state => ({
   records: state.device.get('records') || [],
-  started: state.device.get('started')
+  lastMeasure: state.device.get('lastMeasure')
 });
 
 export default connect(mapStateToProps)(Chart);

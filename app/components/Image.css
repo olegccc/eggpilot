@@ -1,7 +1,17 @@
 .root {
   width: 100%;
+  position: relative;
+}
+
+.stats {
+  position: absolute;
+  text-align: center;
+  top: 0;
+  background: white;
+  opacity: 50%;
 }
 
 img {
   position: relative;
+  display: block;
 }

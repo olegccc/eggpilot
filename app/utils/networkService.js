@@ -91,6 +91,9 @@ class NetworkService {
       type: 'image/jpeg'
     });
     this._dispatch(Device.image(URL.createObjectURL(blob)));
+    this._dispatch(Device.timeStats({
+      imageTime: 0
+    }));
   }
 
   _onTextData(command, data) {
@@ -104,11 +107,14 @@ class NetworkService {
       case 'records':
         this._dispatch(Device.setRecords(data));
         break;
-      case 'started':
-        this._dispatch(Device.updateStarted(data));
-        break;
       case 'newMeasure':
         this._dispatch(Device.newMeasure(data));
+        this._dispatch(Device.timeStats({
+          measureTime: 0
+        }));
+        break;
+      case 'timeStats':
+        this._dispatch(Device.timeStats(data));
         break;
       default:
         break;
@@ -124,7 +130,8 @@ class NetworkService {
     this._lastMessage = new Date().getTime();
 
     if (_.isString(event.data)) {
-      _.each(JSON.parse(event.data), (value, key) => {
+      const parsed = JSON.parse(event.data);
+      _.each(parsed, (value, key) => {
         this._onTextData(key, value);
       });
     } else if (this._socket.binaryType === 'blob') {

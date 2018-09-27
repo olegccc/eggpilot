@@ -1,15 +1,91 @@
 import Device from '../actions/Device';
 import {Map} from 'immutable';
+import {intervalToString} from "../utils/time";
 
 const defaultState = Map({
   humidity: 0,
-  started: 0,
   temperature: 0,
   deviceId: '',
   error: '',
   records: [],
-  image: null
+  image: null,
+  timeStats: {
+    started: null,
+    stopped: null,
+    measureTime: null,
+    imageTime: null
+  },
+  sinceStarted: '',
+  sinceStopped: '',
+  lastImage: '',
+  lastMeasure: ''
 });
+
+const MAX_MEASURE_TIME = (1000*60*10);
+const LONG_TIME_AGO = 'a long time ago';
+const NEVER_UPDATED = 'never';
+
+function updateMeasureTime(state) {
+  let {measureTime, imageTime, started, stopped} = state.get('timeStats');
+  if (!measureTime && !imageTime && !started && !stopped) {
+    const timePassed = state.get('timePassed');
+    if (Object.keys(timePassed) > 0) {
+      return state.set('timePassed', {});
+    } else {
+      return state;
+    }
+  }
+  const time = new Date().getTime();
+
+  if (!measureTime) {
+    measureTime = NEVER_UPDATED;
+  } else {
+    measureTime = time - measureTime;
+    if (measureTime > MAX_MEASURE_TIME) {
+      measureTime = LONG_TIME_AGO;
+    } else {
+      measureTime = intervalToString(measureTime);
+    }
+  }
+
+  if (!imageTime) {
+    imageTime = NEVER_UPDATED;
+  } else {
+    imageTime = time - imageTime;
+    if (imageTime > MAX_MEASURE_TIME) {
+      imageTime = LONG_TIME_AGO;
+    } else {
+      imageTime = intervalToString(imageTime);
+    }
+  }
+
+  if (!started) {
+    started = NEVER_UPDATED;
+  } else {
+    started = intervalToString(time - started, false);
+  }
+
+  if (!stopped) {
+    stopped = NEVER_UPDATED;
+  } else {
+    stopped = intervalToString(time - stopped, false);
+  }
+
+  const labels = {
+    lastMeasure: measureTime,
+    lastImage: imageTime,
+    sinceStarted: started,
+    sinceStopped: stopped
+  };
+
+  for (const key of Object.keys(labels)) {
+    if (state.get(key) !== labels[key]) {
+      state = state.set(key, labels[key]);
+    }
+  }
+
+  return state;
+}
 
 function reducer(state = defaultState, action) {
   switch (action.type) {
@@ -29,8 +105,6 @@ function reducer(state = defaultState, action) {
         .set('deviceId', action.deviceId);
     case Device.DEVICE_ERROR:
       return state.set('error', action.message || 'Error');
-    case Device.STARTED:
-      return state.set('started', action.started);
     case Device.NEW_MEASURE: {
       const {temperature, humidity} = action.measure;
       const oldRecords = state.get('records') || [];
@@ -42,6 +116,18 @@ function reducer(state = defaultState, action) {
     }
     case Device.IMAGE:
       return state.set('image', action.image);
+    case Device.UPDATE_MEASURE_TIME:
+      return updateMeasureTime(state);
+    case Device.TIME_STATS: {
+      const newStats = Object.assign({}, state.get('timeStats'));
+      for (const key of Object.keys(action.stats)) {
+        newStats[key] = action.stats[key];
+      }
+      if (action.stats.started || action.stats.started === null) {
+        state = state.set('records', []);
+      }
+      return updateMeasureTime(state.set('timeStats', newStats));
+    }
   }
   return state;
 }

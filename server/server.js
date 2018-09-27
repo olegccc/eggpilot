@@ -21,22 +21,28 @@ export default class Server {
     this._deviceApi = new DeviceApi(this._post, this._get, this._database, this._production, props => this.onDeviceChanged(props));
   }
 
-  onDeviceChanged({deviceId, temperature, humidity, time, image}) {
+  onDeviceChanged({deviceId, newMeasure, image, started, stopped, measureTime, imageTime}) {
     if (image) {
       console.log(`device image changed: ${deviceId}`);
     } else {
-      console.log(`device changed: ${deviceId}, temperature ${temperature}, humidity ${humidity}`);
+      console.log(`device measures changed: ${deviceId}`);
     }
+
     const dataPackage = image ? new Uint8Array(image) : {
-      newMeasure: {
-        temperature,
-        humidity,
-        time
+      newMeasure,
+      timeStats: {
+        measureTime,
+        imageTime,
+        started,
+        stopped
       }
     };
     const options = image ? { binary: true} : undefined;
     for (const session of Object.values(this._sessions)) {
       if (!session || session.deviceId !== deviceId) {
+        continue;
+      }
+      if (session.statsOnly && image) {
         continue;
       }
       try {

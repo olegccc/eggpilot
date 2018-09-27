@@ -24,14 +24,24 @@ export default class Database {
     }, {
       humidity: 1,
       temperature: 1,
-      started: 1
+      started: 1,
+      stopped: 1,
+      measureTime: 1,
+      imageTime: 1
     });
 
     if (!device) {
       throw Error('Unknown device');
     }
 
-    const {humidity, temperature, started} = device;
+    const {
+      humidity,
+      temperature,
+      started,
+      stopped,
+      measureTime,
+      imageTime
+    } = device;
 
     const records = await this.db.collection('history').find({
       deviceId: this.ObjectId(deviceId)
@@ -40,7 +50,10 @@ export default class Database {
     return {
       humidity,
       temperature,
-      started,
+      started: started ? started : null,
+      stopped: stopped ? stopped : null,
+      measureTime: measureTime ? measureTime : null,
+      imageTime: imageTime ? imageTime : null,
       records: records.map(({temperature, humidity, time}) => ({temperature, humidity, time}))
     };
   }
@@ -53,24 +66,27 @@ export default class Database {
     const device = await this.db.collection('devices').findOne({
       _id: this.ObjectId(deviceId)
     }, {
-      image: 1
+      image: 1,
+      imageTime: 1
     });
 
     if (!device) {
       throw Error('Unknown device');
     }
 
-    const { image } = device;
+    const { image, imageTime } = device;
     if (!image) {
       return {
-        image: null
+        image: null,
+        lastImage: -1
       };
     }
 
     const buffer = image.read(0, image.length());
 
     return {
-      image: buffer
+      image: buffer,
+      imageTime
     };
   }
 
@@ -80,7 +96,12 @@ export default class Database {
     }
     const result = await this.db.collection('devices').insertOne({
       created: time,
-      started: time
+      started: null,
+      stopped: null,
+      measureTime: null,
+      imageTime: null,
+      temperature: null,
+      humidity: null
     });
     return {
       deviceId: result.insertedId
@@ -97,9 +118,6 @@ export default class Database {
     await this.db.collection('history').removeMany({
       deviceId: this.ObjectId(deviceId)
     });
-    return {
-      success: true
-    };
   }
 
   async updateDevice({deviceId, temperature, humidity, time}) {
@@ -120,7 +138,8 @@ export default class Database {
     }, {
       $set: {
         temperature,
-        humidity
+        humidity,
+        measureTime: time
       }
     });
 
@@ -131,15 +150,7 @@ export default class Database {
       time
     });
 
-    const {
-      started
-    } = await this.db.collection('devices').findOne({
-      _id: this.ObjectId(deviceId)
-    });
-
-    return {
-      timePassed: Math.floor((new Date().getTime()-started)/1000)
-    };
+    return device;
   }
 
   async updateImage({deviceId, image}) {
@@ -155,7 +166,8 @@ export default class Database {
       _id: this.ObjectId(deviceId)
     }, {
       $set: {
-        image: this.Binary(image)
+        image: this.Binary(image),
+        imageTime: new Date().getTime()
       }
     });
     if (result.modifiedCount !== 1) {
@@ -171,7 +183,22 @@ export default class Database {
       _id: this.ObjectId(deviceId)
     }, {
       $set: {
-        started: new Date().getTime()
+        started: new Date().getTime(),
+        stopped: null,
+        measureTime: null,
+        imageTime: null
+      }
+    });
+  }
+
+  async stopMeasure({deviceId}) {
+    await this.db.collection('devices').update({
+      _id: this.ObjectId(deviceId)
+    }, {
+      $set: {
+        stopped: new Date().getTime(),
+        measureTime: null,
+        imageTime: null
       }
     });
   }

@@ -14,6 +14,9 @@ export default class Controller {
       try {
         const value = message[messageId] || {};
         switch (messageId) {
+          case 'statsOnly':
+            this._session.statsOnly = true;
+            break;
           case 'deviceId':
             this.onDeviceId(value);
             break;
@@ -32,14 +35,23 @@ export default class Controller {
 
   async onDeviceId(deviceId) {
     try {
-      const {temperature, humidity, records, started} = await this._database.getDeviceMeasures(deviceId);
+      const {temperature, humidity, records, started, stopped, measureTime, imageTime} = await this._database.getDeviceMeasures(deviceId);
+      const time = new Date().getTime();
+      for (const record of records) {
+        record.time -= started;
+      }
       this.sendData({
         measures: {
           temperature,
           humidity
         },
         records,
-        started
+        timeStats: {
+          measureTime: measureTime ? time - measureTime : null,
+          imageTime : imageTime ? time - imageTime : null,
+          started: started ? time - started : null,
+          stopped: stopped ? time - stopped : null,
+        }
       });
       setTimeout(async () => {
         try {

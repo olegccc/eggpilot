@@ -3,6 +3,10 @@
     flex-direction: column;
 }
 
+.stats {
+    text-align: center;
+}
+
 .meters {
     display: flex;
     flex-direction: row;
