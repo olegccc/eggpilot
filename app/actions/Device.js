@@ -51,7 +51,7 @@ export default class Device {
       if (value === null) {
         continue;
       }
-      stats[key] = value + time;
+      stats[key] = time - value;
     }
     return {
       type: Device.TIME_STATS,

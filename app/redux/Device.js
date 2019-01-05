@@ -21,15 +21,15 @@ const defaultState = Map({
   lastMeasure: ''
 });
 
-const MAX_MEASURE_TIME = (1000*60*10);
+const MAX_MEASURE_TIME = (1000*60*20);
 const LONG_TIME_AGO = 'a long time ago';
 const NEVER_UPDATED = 'never';
 
 function updateMeasureTime(state) {
   let {measureTime, imageTime, started, stopped} = state.get('timeStats');
   if (!measureTime && !imageTime && !started && !stopped) {
-    const timePassed = state.get('timePassed');
-    if (Object.keys(timePassed) > 0) {
+    const timePassed = state.get('timePassed') || {};
+    if (Object.keys(timePassed).length > 0) {
       return state.set('timePassed', {});
     } else {
       return state;
@@ -66,7 +66,7 @@ function updateMeasureTime(state) {
   }
 
   if (!stopped) {
-    stopped = NEVER_UPDATED;
+    stopped = '';
   } else {
     stopped = intervalToString(time - stopped, false);
   }

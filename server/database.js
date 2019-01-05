@@ -8,10 +8,15 @@ export default class Database {
 
   async initialize({MongoClient, ObjectId, Binary}) {
     const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/eggpilot';
+    console.log(`Initializing db with uri=${url}`);
     const db = await MongoClient.connect(url);
     this.db = db.db();
     this.ObjectId = ObjectId;
     this.Binary = Binary;
+
+    const devices = await this.db.collection('devices').find().toArray();
+
+    console.log('devices: ', devices);
   }
 
   async getDeviceMeasures(deviceId) {

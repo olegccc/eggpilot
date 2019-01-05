@@ -11,13 +11,18 @@ export default class DeviceApi {
     postTable.startMeasure = this.startMeasure.bind(this);
     postTable.stopMeasure = this.stopMeasure.bind(this);
     postTable.updateImage = this.updateImage.bind(this);
+    postTable.deviceStatus = this.deviceStatus.bind(this);
 
-    if (!production) {
-      getTable.createDevice = this.createDevice.bind(this);
-    }
+    // if (!production) {
+      postTable.createDevice = this.createDevice.bind(this);
+    // }
   }
 
-  async createDevice(body, rest, req, res) {
+  async createDevice({tokenId}, rest, req) {
+
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
 
     const records = [
       [232, 570],
@@ -42,6 +47,8 @@ export default class DeviceApi {
       time
     });
 
+    await this._database.startMeasure({deviceId});
+
     for (const record of records) {
       const temperature = record[0];
       const humidity = record[1];
@@ -50,7 +57,9 @@ export default class DeviceApi {
       time += 10000;
     }
 
-    res.redirect(`http://${req.headers.host}/#/device/${deviceId}`);
+    return {
+      url: `http://${req.headers.host}/#/device/${deviceId}`
+    };
   }
 
   async addDevice(body) {
@@ -172,6 +181,22 @@ export default class DeviceApi {
 
     return {
       success: true
+    };
+  }
+
+  async deviceStatus({deviceId, tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+
+    const { humidity, temperature, measureTime } =
+      await this._database.getDeviceMeasures(deviceId);
+    const time = new Date().getTime();
+
+    return {
+      temperature,
+      humidity,
+      time: measureTime ? time - measureTime : -100
     };
   }
 }
