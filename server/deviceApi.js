@@ -232,7 +232,7 @@ export default class DeviceApi {
   }
 
   async subscribe(userId, deviceId, firstName) {
-    await this._database.subscribe({
+    return await this._database.subscribe({
       userId,
       deviceId,
       firstName
@@ -240,7 +240,7 @@ export default class DeviceApi {
   }
 
   async unsubscribe(userId, deviceId) {
-    await this._database.unsubscribe({
+    return await this._database.unsubscribe({
       userId,
       deviceId
     });
@@ -250,20 +250,14 @@ export default class DeviceApi {
     if (tokenId !== process.env.TOKEN_ID) {
       throw Error('Unknown token id');
     }
-    await this.subscribe(userId, deviceId, firstName);
-    return {
-      success: 1
-    };
+    return await this.subscribe(userId, deviceId, firstName);
   }
 
   async testUnsubscribe({userId, deviceId, tokenId}) {
     if (tokenId !== process.env.TOKEN_ID) {
       throw Error('Unknown token id');
     }
-    await this.unsubscribe(userId, deviceId);
-    return {
-      success: 1
-    };
+    return await this.unsubscribe(userId, deviceId);
   }
 
   async testGetSubscriptions({deviceId, tokenId}) {

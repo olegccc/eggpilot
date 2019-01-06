@@ -219,7 +219,7 @@ export default class Database {
       throw Error('Unknown device');
     }
     await this.unsubscribe({deviceId, userId});
-    await this.db.collection('devices').update({
+    return await this.db.collection('devices').update({
       _id: this.ObjectId(deviceId)
     }, {
       $push: {
@@ -232,7 +232,7 @@ export default class Database {
   }
 
   async unsubscribe({deviceId, userId}) {
-    await this.db.collection('history').update({
+    return await this.db.collection('history').update({
       _id: this.ObjectId(deviceId)
     }, {
       $pull: {
