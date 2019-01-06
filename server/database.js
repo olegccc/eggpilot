@@ -232,7 +232,7 @@ export default class Database {
   }
 
   async unsubscribe({deviceId, userId}) {
-    return await this.db.collection('history').update({
+    return await this.db.collection('devices').update({
       _id: this.ObjectId(deviceId)
     }, {
       $pull: {
