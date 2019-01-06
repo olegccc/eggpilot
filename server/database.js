@@ -219,7 +219,7 @@ export default class Database {
       throw Error('Unknown device');
     }
     await this.unsubscribe({deviceId, userId});
-    return await this.db.collection('devices').update({
+    const ret = await this.db.collection('devices').update({
       _id: this.ObjectId(deviceId)
     }, {
       $push: {
@@ -229,10 +229,11 @@ export default class Database {
         }
       }
     });
+    return ret.n > 0;
   }
 
   async unsubscribe({deviceId, userId}) {
-    return await this.db.collection('devices').update({
+    const ret = await this.db.collection('devices').update({
       _id: this.ObjectId(deviceId)
     }, {
       $pull: {
@@ -241,6 +242,7 @@ export default class Database {
         }
       }
     });
+    return ret.n > 0;
   }
 
   async getSubscriptions({deviceId}) {
@@ -256,7 +258,7 @@ export default class Database {
   }
 
   async findSubscriptions({maximumTemperature, minimumTime}) {
-    return await this.db.collection('devices').find({
+    const records = await this.db.collection('devices').find({
       $and: [
         {
           subscriptions: {
@@ -292,7 +294,9 @@ export default class Database {
       subscriptions: 1,
       temperature: 1,
       measureTime: 1
-    }).toArray().map(r => {
+    }).toArray();
+
+    return records.map(r => {
       r.deviceId = r._id.toString();
       r._id = undefined;
       return r;
