@@ -73,4 +73,11 @@ module.exports = function(assetsPath, publicPath, getServer, release) {
   server.listen(port, () => {
     console.log(`Listening on port ${port}!`);
   });
+
+  setInterval(() => {
+    const s = getServer();
+    if (s) {
+      s.backgroundTask();
+    }
+  }, 500);
 };

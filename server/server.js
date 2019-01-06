@@ -161,4 +161,8 @@ export default class Server {
   onSocketError(err) {
     console.log('Socket error', err);
   }
+
+  backgroundTask() {
+    this._deviceApi.backgroundTask();
+  }
 }

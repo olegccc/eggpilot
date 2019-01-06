@@ -106,7 +106,8 @@ export default class Database {
       measureTime: null,
       imageTime: null,
       temperature: null,
-      humidity: null
+      humidity: null,
+      subscriptions: []
     });
     return {
       deviceId: result.insertedId
@@ -205,6 +206,96 @@ export default class Database {
         measureTime: null,
         imageTime: null
       }
+    });
+  }
+
+  async subscribe({deviceId, userId, firstName}) {
+    const device = await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    }, {
+      _id: 1
+    });
+    if (!device) {
+      throw Error('Unknown device');
+    }
+    await this.unsubscribe({deviceId, userId});
+    await this.db.collection('devices').update({
+      _id: this.ObjectId(deviceId)
+    }, {
+      $push: {
+        subscriptions: {
+          userId,
+          firstName,
+        }
+      }
+    });
+  }
+
+  async unsubscribe({deviceId, userId}) {
+    await this.db.collection('history').update({
+      _id: this.ObjectId(deviceId)
+    }, {
+      $pull: {
+        subscriptions: {
+          userId
+        }
+      }
+    });
+  }
+
+  async getSubscriptions({deviceId}) {
+    const device = await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    }, {
+      subscriptions: 1
+    });
+    if (!device) {
+      return [];
+    }
+    return device.subscriptions;
+  }
+
+  async findSubscriptions({maximumTemperature, minimumTime}) {
+    return await this.db.collection('devices').find({
+      $and: [
+        {
+          subscriptions: {
+            $exists: true,
+            $not: {
+              $size: 0
+            }
+          }
+        },
+        {
+          started: {
+            $exists: true,
+            $ne: null
+          }
+        },
+        {
+          $or: [
+            {
+              temperature: {
+                $gt: maximumTemperature
+              }
+            },
+            {
+              measureTime: {
+                $lt: minimumTime
+              }
+            }
+          ]
+        }
+      ]
+    }, {
+      _id: 1,
+      subscriptions: 1,
+      temperature: 1,
+      measureTime: 1
+    }).toArray().map(r => {
+      r.deviceId = r._id.toString();
+      r._id = undefined;
+      return r;
     });
   }
 }

@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export default class DeviceApi {
   constructor(postTable, getTable, database, production, onDeviceChanged) {
     if (!process.env.TOKEN_ID) {
@@ -12,6 +14,11 @@ export default class DeviceApi {
     postTable.stopMeasure = this.stopMeasure.bind(this);
     postTable.updateImage = this.updateImage.bind(this);
     postTable.deviceStatus = this.deviceStatus.bind(this);
+
+    postTable.testSubscribe = this.testSubscribe.bind(this);
+    postTable.testUnsubscribe = this.testUnsubscribe.bind(this);
+    postTable.testFindSubscriptions = this.testFindSubscriptions.bind(this);
+    postTable.testGetSubscriptions = this.testGetSubscriptions.bind(this);
 
     // if (!production) {
       postTable.createDevice = this.createDevice.bind(this);
@@ -113,7 +120,7 @@ export default class DeviceApi {
       }
     }));
     return {
-      started: started - new Date().getTime()
+      started: new Date().getTime() - started
     };
   }
 
@@ -198,5 +205,126 @@ export default class DeviceApi {
       humidity,
       time: measureTime ? time - measureTime : -100
     };
+  }
+
+  async botUpdate({update_id, message}, tokenId, req, res) {
+    if (!tokenId || tokenId !== process.env.TELEGRAM_UPDATE_TOKEN) {
+      throw Error('Unknown token id');
+    }
+
+    this.onBotMessage(message);
+
+    res.end();
+  }
+
+  onBotMessage({message_id, from, text}) {
+    if (!from || !text) {
+      return;
+    }
+
+    const { id, first_name } = from;
+
+    if (text.substring(0, 10) === '/subscribe') {
+      this.subscribe(id, text.substring(11), first_name);
+    } else if (text.substring(0, 12) === '/unsubscribe') {
+      this.unsubscribe(id, text.substring(13));
+    }
+  }
+
+  async subscribe(userId, deviceId, firstName) {
+    await this._database.subscribe({
+      userId,
+      deviceId,
+      firstName
+    });
+  }
+
+  async unsubscribe(userId, deviceId) {
+    await this._database.unsubscribe({
+      userId,
+      deviceId
+    });
+  }
+
+  async testSubscribe({userId, deviceId, firstName, tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+    await this.subscribe(userId, deviceId, firstName);
+    return {
+      success: 1
+    };
+  }
+
+  async testUnsubscribe({userId, deviceId, tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+    await this.unsubscribe(userId, deviceId);
+    return {
+      success: 1
+    };
+  }
+
+  async testGetSubscriptions({deviceId, tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+    const subscriptions = await this._database.getSubscriptions({
+      deviceId
+    });
+    return {
+      subscriptions
+    };
+  }
+
+  async testFindSubscriptions({tokenId}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+    const subscriptions = await this._database.findSubscriptions({
+      maximumTemperature: 400,
+      minimumTime: new Date().getTime() - 30000
+    });
+    return {
+      subscriptions
+    };
+  }
+
+  async sendMessage(userId, message) {
+    const apiToken = process.env.TELEGRAM_API_TOKEN;
+    const url = `https://api.telegram.org/bot${apiToken}/sendMessage`;
+    const body = {
+      chat_id: userId,
+      parse_mode: 'HTML',
+      text: message
+    };
+    await axios.post(url, body);
+  }
+
+  async backgroundTask() {
+    // const subscriptionsList = await this._database.getSubscriptions();
+    // const subscriptions = {};
+    // for (const {deviceId, userId} of subscriptionsList) {
+    //   const list = subscriptions[deviceId] || [];
+    //   list.push(userId);
+    //   subscriptions[deviceId] = list;
+    // }
+    // for (const deviceId of Object.keys(subscriptions)) {
+    //   const time = new Date().getTime();
+    //   const {temperature, measureTime} = this._database.getDeviceMeasures(deviceId);
+    //   const temperatureAlert = temperature > 400;
+    //   const measureAlert = time - measureTime > 30000;
+    //   if (!temperatureAlert && !measureAlert) {
+    //     continue;
+    //   }
+    //   const message = temperatureAlert ?
+    //     `<strong>Temperature Alert</strong>: Temperature is ${temperature/10}` :
+    //     `Measure timeout: ${(time-measureTime)/1000}s`;
+    //   const userIds = subscriptions[deviceId];
+    //   for (const userId of userIds) {
+    //     this.sendMessage(userId, message);
+    //   }
+    // }
   }
 }
