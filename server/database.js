@@ -309,7 +309,7 @@ export default class Database {
           }
         }
       }, {
-        $out: "devices"
+        $out: "devices2"
       }
     ]);
   }
