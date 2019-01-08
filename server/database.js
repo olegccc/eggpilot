@@ -1,8 +1,8 @@
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
 
 export const ALERT_NONE = 0;
-export const ALERT_TEMPERATURE = 1;
-export const ALERT_TIMEOUT = 2;
+export const ALERT_TIMEOUT = 1;
+export const ALERT_TEMPERATURE = 2;
 
 function isValidObjectId(objectId) {
   return objectId && RE_OBJECT_ID.test(objectId);
@@ -245,7 +245,7 @@ export default class Database {
       }
     });
     return {
-      success: ret.n > 0,
+      success: ret.modifiedCount > 0,
       alert: device.alert
     };
   }
@@ -260,7 +260,7 @@ export default class Database {
         }
       }
     });
-    return ret.n > 0;
+    return ret.modifiedCount > 0;
   }
 
   async getSubscriptions({deviceId}) {
@@ -318,21 +318,21 @@ export default class Database {
     //   }
     // ]);
     await this.db.collection('devices').updateMany({
-      temperature: {
-        $gt: maximumTemperature
-      }
-    }, {
-      $set: {
-        alert: ALERT_TEMPERATURE
-      }
-    });
-    await this.db.collection('devices').updateMany({
       measureTime: {
         $lt: minimumTime
       }
     }, {
       $set: {
         alert: ALERT_TIMEOUT
+      }
+    });
+    await this.db.collection('devices').updateMany({
+      temperature: {
+        $gt: maximumTemperature
+      }
+    }, {
+      $set: {
+        alert: ALERT_TEMPERATURE
       }
     });
     await this.db.collection('devices').updateMany({
@@ -359,7 +359,7 @@ export default class Database {
       $and: [
         {
           $expr: {
-            $ne: ['alert', 'lastAlert']
+            $ne: ['$alert', '$lastAlert']
           }
         },
         {
