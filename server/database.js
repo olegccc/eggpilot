@@ -195,7 +195,7 @@ export default class Database {
     await this.db.collection('history').remove({
       deviceId: this.ObjectId(deviceId)
     });
-    await this.db.collection('devices').update({
+    await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
       $set: {
@@ -208,7 +208,7 @@ export default class Database {
   }
 
   async stopMeasure({deviceId}) {
-    await this.db.collection('devices').update({
+    await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
       $set: {
@@ -229,7 +229,7 @@ export default class Database {
       throw Error('Unknown device');
     }
     await this.unsubscribe({deviceId, userId});
-    const ret = await this.db.collection('devices').update({
+    const ret = await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
       $push: {
@@ -243,7 +243,7 @@ export default class Database {
   }
 
   async unsubscribe({deviceId, userId}) {
-    const ret = await this.db.collection('devices').update({
+    const ret = await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
       $pull: {
@@ -268,10 +268,12 @@ export default class Database {
   }
 
   async setSubscriptionLastNotifyTime({deviceId, time}) {
-    await this.db.collection('devices').update({
+    await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
-      notifyTime: time
+      $set: {
+        notifyTime: time
+      }
     });
   }
 
