@@ -241,6 +241,8 @@ const MINIMUM_UPDATE_TIME = 30000;
         await this.subscribe(id, text.substring(11), first_name);
       } else if (text.substring(0, 12) === '/unsubscribe') {
         await this.unsubscribe(id, text.substring(13));
+      } else if (text === '/update') {
+        await this.sendUpdates(id);
       }
     } catch (err) {
       this.sendMessage(id, err.message);
@@ -335,6 +337,21 @@ const MINIMUM_UPDATE_TIME = 30000;
     return {
       subscriptions
     };
+  }
+
+  async sendUpdates(userId) {
+    const devices = await this._database.getUserDevices(userId);
+    let message = '';
+    for (const {deviceId, temperature, humidity} of devices) {
+      if (message) {
+        message += '\n';
+      }
+      message += `device ${deviceId.substring(0, 5)}: temperature ${temperature/10}, humidity ${humidity/10}`;
+    }
+    if (!message) {
+      message = 'No subscriptions';
+    }
+    await this.sendMessage(userId, message);
   }
 
   async sendMessage(userId, message) {

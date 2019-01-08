@@ -285,6 +285,23 @@ export default class Database {
     });
   }
 
+  async getUserDevices(userId) {
+    const devices = await this.db.collection('devices').find({
+      subscriptions: userId
+    }, {
+      humidity: 1,
+      temperature: 1,
+      measureTime: 1
+    }).toArray();
+
+    return devices.map(({_id, temperature, humidity, measureTime}) => ({
+      deviceId: _id.toString(),
+      measureTime,
+      temperature,
+      humidity
+    }));
+  }
+
   async updateDeviceAlerts({maximumTemperature, minimumTime}) {
     console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime}`);
     // this part is commented out because it just doesn't work on mlab
