@@ -339,6 +339,26 @@ const MINIMUM_UPDATE_TIME = 30000;
     };
   }
 
+  timeToString(timeMs) {
+    const ms = timeMs % 1000;
+    let time = (timeMs-ms)/1000;
+    if (!time) {
+      return `${ms} ms`;
+    }
+    const sec = time % 60;
+    time = (time-sec) / 60;
+    if (!time) {
+      return `${sec} sec`;
+    }
+    const min = time % 60;
+    time = (time-min) / 60;
+    if (!time) {
+      return `${min} min`;
+    }
+    const hours = time;
+    return `${hours} hr ${min} min`;
+  }
+
   async sendUpdates(userId) {
     const time = new Date().getTime();
     const devices = await this._database.getUserDevices(userId);
@@ -347,7 +367,7 @@ const MINIMUM_UPDATE_TIME = 30000;
       if (message) {
         message += '\n';
       }
-      message += `device ${deviceId.substring(0, 5)}: temperature ${temperature/10}, humidity ${humidity/10}, last update ${time-measureTime}`;
+      message += `device ${deviceId.substring(0, 5)}: temperature ${temperature/10}, humidity ${humidity/10}, last update ${this.timeToString(time-measureTime)}`;
     }
     if (!message) {
       message = 'No subscriptions';
