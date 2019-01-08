@@ -1,4 +1,5 @@
 import axios from 'axios'
+import {ALERT_NONE, ALERT_TIMEOUT, ALERT_TEMPERATURE} from 'database';
 
 const MAXIMUM_TEMPERATURE_ALERT = 400;
 const MINIMUM_MEASURE_TIME = 30000;
@@ -350,29 +351,33 @@ const MINIMUM_UPDATE_TIME = 30000;
     this._inUpdate = true;
 
     try {
-      const devices = await this._database.findSubscriptions({
+      await this._database.updateDeviceAlerts({
         maximumTemperature: MAXIMUM_TEMPERATURE_ALERT,
-        minimumTime: time-MINIMUM_MEASURE_TIME,
-        minimumUpdateTime: time-MINIMUM_UPDATE_TIME
+        minimumTime: time-MINIMUM_MEASURE_TIME
       });
 
-      for (const {deviceId, subscriptions, temperature, measureTime} of devices) {
-        console.log(`got background check alert for device ${deviceId}, temperature ${temperature}, measure time ${time-measureTime}`);
-        const temperatureAlert = temperature >= MAXIMUM_TEMPERATURE_ALERT;
-        const measureAlert = time - measureTime > MINIMUM_MEASURE_TIME;
-        if (!temperatureAlert && !measureAlert) {
-          console.log('alert for unknown reason', deviceId);
-          continue;
+      const devices = await this._database.findSubscriptionsWithAlerts();
+
+      for (const {deviceId, subscriptions, alert} of devices) {
+        console.log(`got background check alert for device ${deviceId}, alert ${alert}`);
+        let message;
+        switch (alert) {
+          case ALERT_TEMPERATURE:
+            message = '<strong>Temperature Alert</strong>: Temperature is too high!';
+            break;
+          case ALERT_TIMEOUT:
+            message = 'Measure timeout';
+            break;
+          case ALERT_NONE:
+            message = 'Restored to normal state';
+            break;
         }
-        const message = temperatureAlert ?
-          `<strong>Temperature Alert</strong>: Temperature is ${temperature/10}` :
-          `Measure timeout: ${(time-measureTime)/1000}s`;
         for (const {userId} of subscriptions) {
           await this.sendMessage(userId, message);
         }
-        await this._database.setSubscriptionLastNotifyTime({
+        await this._database.setDeviceLastAlert({
           deviceId,
-          time: new Date().getTime()
+          alert
         });
       }
     } catch(err) {

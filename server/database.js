@@ -1,5 +1,9 @@
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
 
+export const ALERT_NONE = 0;
+export const ALERT_TEMPERATURE = 1;
+export const ALERT_TIMEOUT = 2;
+
 function isValidObjectId(objectId) {
   return objectId && RE_OBJECT_ID.test(objectId);
 }
@@ -267,32 +271,56 @@ export default class Database {
     return device.subscriptions;
   }
 
-  async setSubscriptionLastNotifyTime({deviceId, time}) {
+  async setDeviceLastAlert({deviceId, alert}) {
     await this.db.collection('devices').updateOne({
       _id: this.ObjectId(deviceId)
     }, {
       $set: {
-        notifyTime: time
+        lastAlert: alert
       }
     });
   }
 
-  async findSubscriptions({maximumTemperature, minimumTime, minimumUpdateTime}) {
-    console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime} and minimum update time ${minimumUpdateTime}`);
+  async updateDeviceAlerts({maximumTemperature, minimumTime}) {
+    console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime}`);
+    await this.db.collection('devices').aggregate([
+      {
+        $addFields: {
+          alert: {
+            $max: [
+              {
+                $cond: {
+                  if: {
+                    $gte: ["temperature", maximumTemperature]
+                  },
+                  then: ALERT_TEMPERATURE,
+                  else: ALERT_NONE
+                }
+              }, {
+                $cond: {
+                  if: {
+                    $lt: ["measureTime", minimumTime]
+                  },
+                  then: ALERT_TIMEOUT,
+                  else: ALERT_NONE
+                }
+              }
+            ]
+          }
+        }
+      }, {
+        $out: "devices"
+      }
+    ]);
+  }
+
+  async findSubscriptionsWithAlerts() {
     const records = await this.db.collection('devices').find({
       $and: [
         {
-          $or: [
-            {
-              notifyTime: {
-                $exists: false
-              }
-            }, {
-              notifyTime: {
-                $lt: minimumUpdateTime
-              }
-            }
-          ]
+          $expr: {
+            $ne: ['alert', 'lastAlert']
+          }
         },
         {
           subscriptions: {
@@ -301,40 +329,18 @@ export default class Database {
               $size: 0
             }
           }
-        },
-        {
-          started: {
-            $exists: true,
-            $ne: null
-          }
-        },
-        {
-          $or: [
-            {
-              temperature: {
-                $gt: maximumTemperature
-              }
-            },
-            {
-              measureTime: {
-                $lt: minimumTime
-              }
-            }
-          ]
         }
       ]
     }, {
       subscriptions: 1,
-      temperature: 1,
-      measureTime: 1
+      alert: 1
     }).toArray();
 
-    return records.map(({_id, subscriptions, temperature, measureTime}) => {
+    return records.map(({_id, subscriptions, alert}) => {
       return {
         deviceId: _id.toString(),
         subscriptions,
-        temperature,
-        measureTime
+        alert
       };
     });
   }
