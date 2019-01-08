@@ -18,6 +18,7 @@ const MINIMUM_UPDATE_TIME = 30000;
     postTable.stopMeasure = this.stopMeasure.bind(this);
     postTable.updateImage = this.updateImage.bind(this);
     postTable.deviceStatus = this.deviceStatus.bind(this);
+    postTable.botUpdate = this.botUpdate.bind(this);
 
     postTable.testSubscribe = this.testSubscribe.bind(this);
     postTable.testUnsubscribe = this.testUnsubscribe.bind(this);
@@ -310,32 +311,49 @@ const MINIMUM_UPDATE_TIME = 30000;
 
   async backgroundTask() {
 
+    if (this._inUpdate) {
+      return;
+    }
+
     const time = new Date().getTime();
 
-    const devices = await this._database.findSubscriptions({
-      maximumTemperature: MAXIMUM_TEMPERATURE_ALERT,
-      minimumTime: time-MINIMUM_MEASURE_TIME,
-      minimumUpdateTime: time-MINIMUM_UPDATE_TIME
-    });
-
-    for (const {deviceId, subscriptions, temperature, measureTime} of devices) {
-      console.log(`got background check alert for device ${deviceId}, temperature ${temperature}, measure time ${time-measureTime}`);
-      const temperatureAlert = temperature >= MAXIMUM_TEMPERATURE_ALERT;
-      const measureAlert = time - measureTime > MINIMUM_MEASURE_TIME;
-      if (!temperatureAlert && !measureAlert) {
-        console.log('alert for unknown reason', deviceId);
-        continue;
-      }
-      const message = temperatureAlert ?
-        `<strong>Temperature Alert</strong>: Temperature is ${temperature/10}` :
-        `Measure timeout: ${(time-measureTime)/1000}s`;
-      for (const {userId} of subscriptions) {
-        await this.sendMessage(userId, message);
-      }
-      await this._database.setSubscriptionLastNotifyTime({
-        deviceId,
-        time: new Date().getTime()
-      });
+    if (this._lastUpdate && time-this._lastUpdate < 5000) {
+      return;
     }
+
+    this._inUpdate = true;
+
+    try {
+      const devices = await this._database.findSubscriptions({
+        maximumTemperature: MAXIMUM_TEMPERATURE_ALERT,
+        minimumTime: time-MINIMUM_MEASURE_TIME,
+        minimumUpdateTime: time-MINIMUM_UPDATE_TIME
+      });
+
+      for (const {deviceId, subscriptions, temperature, measureTime} of devices) {
+        console.log(`got background check alert for device ${deviceId}, temperature ${temperature}, measure time ${time-measureTime}`);
+        const temperatureAlert = temperature >= MAXIMUM_TEMPERATURE_ALERT;
+        const measureAlert = time - measureTime > MINIMUM_MEASURE_TIME;
+        if (!temperatureAlert && !measureAlert) {
+          console.log('alert for unknown reason', deviceId);
+          continue;
+        }
+        const message = temperatureAlert ?
+          `<strong>Temperature Alert</strong>: Temperature is ${temperature/10}` :
+          `Measure timeout: ${(time-measureTime)/1000}s`;
+        for (const {userId} of subscriptions) {
+          await this.sendMessage(userId, message);
+        }
+        await this._database.setSubscriptionLastNotifyTime({
+          deviceId,
+          time: new Date().getTime()
+        });
+      }
+    } catch(err) {
+      console.log(err);
+    }
+
+    this._lastUpdate = new Date().getTime();
+    this._inUpdate = false;
   }
 }
