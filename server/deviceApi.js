@@ -234,10 +234,14 @@ const MINIMUM_UPDATE_TIME = 30000;
 
     console.log('new bot message', from, text, id, first_name);
 
-    if (text.substring(0, 10) === '/subscribe') {
-      this.subscribe(id, text.substring(11), first_name);
-    } else if (text.substring(0, 12) === '/unsubscribe') {
-      this.unsubscribe(id, text.substring(13));
+    try {
+      if (text.substring(0, 10) === '/subscribe') {
+        this.subscribe(id, text.substring(11), first_name);
+      } else if (text.substring(0, 12) === '/unsubscribe') {
+        this.unsubscribe(id, text.substring(13));
+      }
+    } catch (err) {
+      this.sendMessage(id, err.message);
     }
   }
 
