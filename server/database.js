@@ -19,6 +19,16 @@ export default class Database {
     console.log('devices: ', devices);
   }
 
+  async testGetDevice(deviceId) {
+    if (!isValidObjectId(deviceId)) {
+      throw Error('Unknown device');
+    }
+
+    return await this.db.collection('devices').findOne({
+      _id: this.ObjectId(deviceId)
+    });
+  }
+
   async getDeviceMeasures(deviceId) {
     if (!isValidObjectId(deviceId)) {
       throw Error('Unknown device');
@@ -266,6 +276,7 @@ export default class Database {
   }
 
   async findSubscriptions({maximumTemperature, minimumTime, minimumUpdateTime}) {
+    console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime} and minimum update time ${minimumUpdateTime}`);
     const records = await this.db.collection('devices').find({
       $and: [
         {

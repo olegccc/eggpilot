@@ -24,6 +24,7 @@ const MINIMUM_UPDATE_TIME = 30000;
     postTable.testUnsubscribe = this.testUnsubscribe.bind(this);
     postTable.testFindSubscriptions = this.testFindSubscriptions.bind(this);
     postTable.testGetSubscriptions = this.testGetSubscriptions.bind(this);
+    postTable.testGetDevice = this.testGetDevice.bind(this);
 
     // if (!production) {
       postTable.createDevice = this.createDevice.bind(this);
@@ -288,13 +289,34 @@ const MINIMUM_UPDATE_TIME = 30000;
     };
   }
 
-  async testFindSubscriptions({tokenId}) {
+  async testGetDevice({deviceId, tokenId}) {
     if (tokenId !== process.env.TOKEN_ID) {
       throw Error('Unknown token id');
     }
+    const device = await this._database.testGetDevice(deviceId);
+    return {
+      device
+    };
+  }
+
+  async testFindSubscriptions({tokenId, maximumTemperature, minimumTime, minimumUpdateTime}) {
+    if (tokenId !== process.env.TOKEN_ID) {
+      throw Error('Unknown token id');
+    }
+    const time = new Date().getTime();
+    if (!maximumTemperature) {
+      maximumTemperature = 400;
+    }
+    if (!minimumTime) {
+      minimumTime = 30000;
+    }
+    if (!minimumUpdateTime) {
+      minimumUpdateTime = 10000;
+    }
     const subscriptions = await this._database.findSubscriptions({
-      maximumTemperature: 400,
-      minimumTime: new Date().getTime() - 30000
+      maximumTemperature,
+      minimumTime: time - minimumTime,
+      minimumUpdateTime: time - minimumUpdateTime
     });
     return {
       subscriptions
