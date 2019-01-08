@@ -286,6 +286,7 @@ export default class Database {
   }
 
   async getUserDevices(userId) {
+    console.log(`checking device status for user ${userId}`);
     const devices = await this.db.collection('devices').find({
       subscriptions: userId
     }, {
@@ -293,7 +294,7 @@ export default class Database {
       temperature: 1,
       measureTime: 1
     }).toArray();
-
+    console.log('devices', devices);
     return devices.map(({_id, temperature, humidity, measureTime}) => ({
       deviceId: _id.toString(),
       measureTime,

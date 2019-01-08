@@ -340,13 +340,14 @@ const MINIMUM_UPDATE_TIME = 30000;
   }
 
   async sendUpdates(userId) {
+    const time = new Date().getTime();
     const devices = await this._database.getUserDevices(userId);
     let message = '';
-    for (const {deviceId, temperature, humidity} of devices) {
+    for (const {deviceId, temperature, humidity, measureTime} of devices) {
       if (message) {
         message += '\n';
       }
-      message += `device ${deviceId.substring(0, 5)}: temperature ${temperature/10}, humidity ${humidity/10}`;
+      message += `device ${deviceId.substring(0, 5)}: temperature ${temperature/10}, humidity ${humidity/10}, last update ${time-measureTime}`;
     }
     if (!message) {
       message = 'No subscriptions';
