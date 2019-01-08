@@ -283,35 +283,71 @@ export default class Database {
 
   async updateDeviceAlerts({maximumTemperature, minimumTime}) {
     console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime}`);
-    await this.db.collection('devices').aggregate([
-      {
-        $addFields: {
-          alert: {
-            $max: [
-              {
-                $cond: {
-                  if: {
-                    $gte: ["$temperature", maximumTemperature]
-                  },
-                  then: ALERT_TEMPERATURE,
-                  else: ALERT_NONE
-                }
-              }, {
-                $cond: {
-                  if: {
-                    $lt: ["$measureTime", minimumTime]
-                  },
-                  then: ALERT_TIMEOUT,
-                  else: ALERT_NONE
-                }
-              }
-            ]
+    // this part is commented out because it just doesn't work on mlab
+    // await this.db.collection('devices').aggregate([
+    //   {
+    //     $addFields: {
+    //       alert: {
+    //         $max: [
+    //           {
+    //             $cond: {
+    //               if: {
+    //                 $gte: ["$temperature", maximumTemperature]
+    //               },
+    //               then: ALERT_TEMPERATURE,
+    //               else: ALERT_NONE
+    //             }
+    //           }, {
+    //             $cond: {
+    //               if: {
+    //                 $lt: ["$measureTime", minimumTime]
+    //               },
+    //               then: ALERT_TIMEOUT,
+    //               else: ALERT_NONE
+    //             }
+    //           }
+    //         ]
+    //       }
+    //     }
+    //   }, {
+    //     $out: "devices"
+    //   }
+    // ]);
+    await this.db.collection('devices').updateMany({
+      temperature: {
+        $gt: maximumTemperature
+      }
+    }, {
+      $set: {
+        alert: ALERT_TEMPERATURE
+      }
+    });
+    await this.db.collection('devices').updateMany({
+      measureTime: {
+        $lt: minimumTime
+      }
+    }, {
+      $set: {
+        alert: ALERT_TIMEOUT
+      }
+    });
+    await this.db.collection('devices').updateMany({
+      $and: [
+        {
+          measureTime: {
+            $gte: minimumTime
+          }
+        }, {
+          temperature: {
+            $lte: maximumTemperature
           }
         }
-      }, {
-        $out: "devices2"
+      ]
+    }, {
+      $set: {
+        alert: ALERT_NONE
       }
-    ]);
+    });
   }
 
   async findSubscriptionsWithAlerts() {
