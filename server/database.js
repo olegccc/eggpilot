@@ -291,7 +291,7 @@ export default class Database {
               {
                 $cond: {
                   if: {
-                    $gte: ["temperature", maximumTemperature]
+                    $gte: ["$temperature", maximumTemperature]
                   },
                   then: ALERT_TEMPERATURE,
                   else: ALERT_NONE
@@ -299,7 +299,7 @@ export default class Database {
               }, {
                 $cond: {
                   if: {
-                    $lt: ["measureTime", minimumTime]
+                    $lt: ["$measureTime", minimumTime]
                   },
                   then: ALERT_TIMEOUT,
                   else: ALERT_NONE
