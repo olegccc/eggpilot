@@ -20,7 +20,7 @@ export default class Database {
 
     const devices = await this.db.collection('devices').find().toArray();
 
-    console.log('devices: ', devices);
+    //console.log('devices: ', devices);
   }
 
   async testGetDevice(deviceId) {
@@ -288,13 +288,17 @@ export default class Database {
   async getUserDevices(userId) {
     console.log(`checking device status for user ${userId}`);
     const devices = await this.db.collection('devices').find({
-      subscriptions: userId
+      subscriptions: {
+        $elemMatch: {
+          userId
+        }
+      }
     }, {
       humidity: 1,
       temperature: 1,
       measureTime: 1
     }).toArray();
-    console.log('devices', devices);
+    //console.log('devices', devices);
     return devices.map(({_id, temperature, humidity, measureTime}) => ({
       deviceId: _id.toString(),
       measureTime,
@@ -304,7 +308,7 @@ export default class Database {
   }
 
   async updateDeviceAlerts({maximumTemperature, minimumTime}) {
-    console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime}`);
+    //console.log(`checking subscriptions with maximum temp=${maximumTemperature} or minimum measure time=${minimumTime}`);
     // this part is commented out because it just doesn't work on mlab
     // await this.db.collection('devices').aggregate([
     //   {
