@@ -220,12 +220,12 @@ const MINIMUM_UPDATE_TIME = 30000;
       throw Error('Unknown token id');
     }
 
-    this.onBotMessage(message);
+    await this.onBotMessage(message);
 
     res.end();
   }
 
-  onBotMessage({message_id, from, text}) {
+  async onBotMessage({message_id, from, text}) {
     if (!from || !text) {
       return;
     }
@@ -236,9 +236,9 @@ const MINIMUM_UPDATE_TIME = 30000;
 
     try {
       if (text.substring(0, 10) === '/subscribe') {
-        this.subscribe(id, text.substring(11), first_name);
+        await this.subscribe(id, text.substring(11), first_name);
       } else if (text.substring(0, 12) === '/unsubscribe') {
-        this.unsubscribe(id, text.substring(13));
+        await this.unsubscribe(id, text.substring(13));
       }
     } catch (err) {
       this.sendMessage(id, err.message);
