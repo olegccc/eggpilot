@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-export default class DeviceApi {
+const MAXIMUM_TEMPERATURE_ALERT = 400;
+const MINIMUM_MEASURE_TIME = 30000;
+const MINIMUM_UPDATE_TIME = 30000;
+
+  export default class DeviceApi {
   constructor(postTable, getTable, database, production, onDeviceChanged) {
     if (!process.env.TOKEN_ID) {
       return;
@@ -208,7 +212,10 @@ export default class DeviceApi {
   }
 
   async botUpdate({update_id, message}, tokenId, req, res) {
+    console.log('new message', update_id, tokenId, message);
+
     if (!tokenId || tokenId !== process.env.TELEGRAM_UPDATE_TOKEN) {
+      console.log('wrong update token');
       throw Error('Unknown token id');
     }
 
@@ -224,6 +231,8 @@ export default class DeviceApi {
 
     const { id, first_name } = from;
 
+    console.log('new bot message', from, text, id, first_name);
+
     if (text.substring(0, 10) === '/subscribe') {
       this.subscribe(id, text.substring(11), first_name);
     } else if (text.substring(0, 12) === '/unsubscribe') {
@@ -232,6 +241,7 @@ export default class DeviceApi {
   }
 
   async subscribe(userId, deviceId, firstName) {
+    console.log(`subscribe user ${userId} to updates for ${deviceId}, username ${firstName}`);
     return await this._database.subscribe({
       userId,
       deviceId,
@@ -240,6 +250,7 @@ export default class DeviceApi {
   }
 
   async unsubscribe(userId, deviceId) {
+    console.log(`unsubscribe user ${userId} from updates for ${deviceId}`);
     return await this._database.unsubscribe({
       userId,
       deviceId
@@ -293,32 +304,38 @@ export default class DeviceApi {
       parse_mode: 'HTML',
       text: message
     };
+    console.log(`sending message '${message}' to user ${userId}`);
     await axios.post(url, body);
   }
 
   async backgroundTask() {
-    // const subscriptionsList = await this._database.getSubscriptions();
-    // const subscriptions = {};
-    // for (const {deviceId, userId} of subscriptionsList) {
-    //   const list = subscriptions[deviceId] || [];
-    //   list.push(userId);
-    //   subscriptions[deviceId] = list;
-    // }
-    // for (const deviceId of Object.keys(subscriptions)) {
-    //   const time = new Date().getTime();
-    //   const {temperature, measureTime} = this._database.getDeviceMeasures(deviceId);
-    //   const temperatureAlert = temperature > 400;
-    //   const measureAlert = time - measureTime > 30000;
-    //   if (!temperatureAlert && !measureAlert) {
-    //     continue;
-    //   }
-    //   const message = temperatureAlert ?
-    //     `<strong>Temperature Alert</strong>: Temperature is ${temperature/10}` :
-    //     `Measure timeout: ${(time-measureTime)/1000}s`;
-    //   const userIds = subscriptions[deviceId];
-    //   for (const userId of userIds) {
-    //     this.sendMessage(userId, message);
-    //   }
-    // }
+
+    const time = new Date().getTime();
+
+    const devices = await this._database.findSubscriptions({
+      maximumTemperature: MAXIMUM_TEMPERATURE_ALERT,
+      minimumTime: time-MINIMUM_MEASURE_TIME,
+      minimumUpdateTime: time-MINIMUM_UPDATE_TIME
+    });
+
+    for (const {deviceId, subscriptions, temperature, measureTime} of devices) {
+      console.log(`got background check alert for device ${deviceId}, temperature ${temperature}, measure time ${time-measureTime}`);
+      const temperatureAlert = temperature >= MAXIMUM_TEMPERATURE_ALERT;
+      const measureAlert = time - measureTime > MINIMUM_MEASURE_TIME;
+      if (!temperatureAlert && !measureAlert) {
+        console.log('alert for unknown reason', deviceId);
+        continue;
+      }
+      const message = temperatureAlert ?
+        `<strong>Temperature Alert</strong>: Temperature is ${temperature/10}` :
+        `Measure timeout: ${(time-measureTime)/1000}s`;
+      for (const {userId} of subscriptions) {
+        await this.sendMessage(userId, message);
+      }
+      await this._database.setSubscriptionLastNotifyTime({
+        deviceId,
+        time: new Date().getTime()
+      });
+    }
   }
 }

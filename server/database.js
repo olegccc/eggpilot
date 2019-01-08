@@ -257,9 +257,30 @@ export default class Database {
     return device.subscriptions;
   }
 
-  async findSubscriptions({maximumTemperature, minimumTime}) {
+  async setSubscriptionLastNotifyTime({deviceId, time}) {
+    await this.db.collection('devices').update({
+      _id: this.ObjectId(deviceId)
+    }, {
+      notifyTime: time
+    });
+  }
+
+  async findSubscriptions({maximumTemperature, minimumTime, minimumUpdateTime}) {
     const records = await this.db.collection('devices').find({
       $and: [
+        {
+          $or: [
+            {
+              notifyTime: {
+                $exists: false
+              }
+            }, {
+              notifyTime: {
+                $lt: minimumUpdateTime
+              }
+            }
+          ]
+        },
         {
           subscriptions: {
             $exists: true,
@@ -290,16 +311,18 @@ export default class Database {
         }
       ]
     }, {
-      _id: 1,
       subscriptions: 1,
       temperature: 1,
       measureTime: 1
     }).toArray();
 
-    return records.map(r => {
-      r.deviceId = r._id.toString();
-      r._id = undefined;
-      return r;
+    return records.map(({_id, subscriptions, temperature, measureTime}) => {
+      return {
+        deviceId: _id.toString(),
+        subscriptions,
+        temperature,
+        measureTime
+      };
     });
   }
 }
