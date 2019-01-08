@@ -227,7 +227,8 @@ export default class Database {
     const device = await this.db.collection('devices').findOne({
       _id: this.ObjectId(deviceId)
     }, {
-      _id: 1
+      _id: 1,
+      alert: 1
     });
     if (!device) {
       throw Error('Unknown device');
@@ -243,7 +244,10 @@ export default class Database {
         }
       }
     });
-    return ret.n > 0;
+    return {
+      success: ret.n > 0,
+      alert: device.alert
+    };
   }
 
   async unsubscribe({deviceId, userId}) {

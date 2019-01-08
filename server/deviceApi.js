@@ -249,19 +249,32 @@ const MINIMUM_UPDATE_TIME = 30000;
 
   async subscribe(userId, deviceId, firstName) {
     console.log(`subscribe user ${userId} to updates for ${deviceId}, username ${firstName}`);
-    return await this._database.subscribe({
+    const ret = await this._database.subscribe({
       userId,
       deviceId,
       firstName
     });
+    if (!ret.success) {
+      await this.sendMessage(userId,'Already subscribed');
+      return;
+    }
+    await this.sendMessage(userId, 'Subscribed successfully');
+    if (ret.alert !== ALERT_NONE) {
+      await this.sendMessage(userId, this.getAlertMessage(ret.alert));
+    }
   }
 
   async unsubscribe(userId, deviceId) {
     console.log(`unsubscribe user ${userId} from updates for ${deviceId}`);
-    return await this._database.unsubscribe({
+    const ret = await this._database.unsubscribe({
       userId,
       deviceId
     });
+    if (ret) {
+      await this.sendMessage(userId, 'Unsubscribed successfully');
+    } else {
+      await this.sendMessage(userId, 'You were not subscribed');
+    }
   }
 
   async testSubscribe({userId, deviceId, firstName, tokenId}) {
@@ -336,6 +349,22 @@ const MINIMUM_UPDATE_TIME = 30000;
     await axios.post(url, body);
   }
 
+  getAlertMessage(alert) {
+    let message;
+    switch (alert) {
+      case ALERT_TEMPERATURE:
+        message = '<strong>Temperature Alert</strong>: Temperature is too high!';
+        break;
+      case ALERT_TIMEOUT:
+        message = 'Measure timeout';
+        break;
+      case ALERT_NONE:
+        message = 'Restored to normal state';
+        break;
+    }
+    return message;
+  }
+
   async backgroundTask() {
 
     if (this._inUpdate) {
@@ -360,18 +389,7 @@ const MINIMUM_UPDATE_TIME = 30000;
 
       for (const {deviceId, subscriptions, alert} of devices) {
         console.log(`got background check alert for device ${deviceId}, alert ${alert}`);
-        let message;
-        switch (alert) {
-          case ALERT_TEMPERATURE:
-            message = '<strong>Temperature Alert</strong>: Temperature is too high!';
-            break;
-          case ALERT_TIMEOUT:
-            message = 'Measure timeout';
-            break;
-          case ALERT_NONE:
-            message = 'Restored to normal state';
-            break;
-        }
+        const message = this.getAlertMessage(alert);
         for (const {userId} of subscriptions) {
           await this.sendMessage(userId, message);
         }
