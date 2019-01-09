@@ -2,8 +2,7 @@ import axios from 'axios'
 import {ALERT_NONE, ALERT_TIMEOUT, ALERT_TEMPERATURE} from './database';
 
 const MAXIMUM_TEMPERATURE_ALERT = 400;
-const MINIMUM_MEASURE_TIME = 30000;
-const MINIMUM_UPDATE_TIME = 30000;
+const MINIMUM_MEASURE_TIME = 60000;
 
   export default class DeviceApi {
   constructor(postTable, getTable, database, production, onDeviceChanged) {
