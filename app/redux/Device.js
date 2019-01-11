@@ -62,13 +62,13 @@ function updateMeasureTime(state) {
   if (!started) {
     started = NEVER_UPDATED;
   } else {
-    started = intervalToString(time - started, false);
+    started = intervalToString(time - started);
   }
 
   if (!stopped) {
     stopped = '';
   } else {
-    stopped = intervalToString(time - stopped, false);
+    stopped = intervalToString(time - stopped);
   }
 
   const labels = {
