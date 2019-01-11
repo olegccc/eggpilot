@@ -110,7 +110,7 @@ class Chart extends React.Component {
         });
     } else {
       this._chart.load({
-        columns: this.this._columns
+        columns: this._columns
       });
     }
   }
