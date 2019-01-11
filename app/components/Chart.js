@@ -16,27 +16,39 @@ class Chart extends React.Component {
     this._chart = undefined;
   }
 
+  _refreshColumns() {
+    const {records} = this.props;
+    if (this._columnHumidity && this._columnHumidity.length-1 > records.length) {
+      this._columnHumidity = undefined;
+      this._columnTemperature = undefined;
+      this._columnTime = undefined;
+    }
+    this._columnHumidity = this._columnHumidity || ['Humidity'];
+    this._columnTime = this._columnTime || ['x'];
+    this._columnTemperature = this._columnTemperature || ['Temperature'];
+    this._columns = this._columns || [this._columnHumidity, this._columnTemperature, this._columnTime];
+    let startIndex = this._columnHumidity.length-1;
+    let endIndex = records.length;
+    if (startIndex === endIndex) {
+      return false;
+    }
+    this._columnHumidity.length = endIndex+1;
+    this._columnTime.length = endIndex+1;
+    this._columnTemperature.length = endIndex+1;
+    for (let i = startIndex; i < endIndex; i++) {
+      const record = records[i];
+      this._columnHumidity[i+1] = record.humidity/10;
+      this._columnTemperature[i+1] = record.temperature/10;
+      this._columnTime[i+1] = record.time;
+    }
+    return true;
+  }
+
   _updateChart() {
 
-    const columnHumidity = [
-      'Humidity'
-    ];
-
-    const columnTemperature = [
-      'Temperature'
-    ];
-
-    const columnTime = ['x'];
-
-    const {records} = this.props;
-
-    for (const record of records) {
-      columnHumidity.push(record.humidity/10);
-      columnTemperature.push(record.temperature/10);
-      columnTime.push(record.time);
+    if (!this._refreshColumns() && this._chart) {
+      return;
     }
-
-    const columns = [columnHumidity, columnTemperature, columnTime];
 
     if (!this._chart) {
       this._chart =
@@ -47,7 +59,7 @@ class Chart extends React.Component {
           },
           data: {
             x: 'x',
-            columns,
+            columns: this._columns,
             type: 'spline',
             axes: {
               'Temperature': 'y2'
@@ -98,7 +110,7 @@ class Chart extends React.Component {
         });
     } else {
       this._chart.load({
-        columns
+        columns: this.this._columns
       });
     }
   }
