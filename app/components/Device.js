@@ -55,7 +55,7 @@ class Device extends React.Component {
     humidity1 /= 10;
     return (<div className={s.root}>
       <div className={s.stats}>
-        <span>Started: {sinceStarted};</span> {sinceStopped && <span>Stopped: {sinceStopped}</span>}
+        <span>Started: {sinceStarted}</span>{sinceStopped && <span>; Stopped: {sinceStopped}</span>}
       </div>
       <div className={s.meters}>
         <div className={s.temperature}>

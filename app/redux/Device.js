@@ -119,12 +119,12 @@ function reducer(state = defaultState, action) {
     case Device.UPDATE_MEASURE_TIME:
       return updateMeasureTime(state);
     case Device.TIME_STATS: {
-      const newStats = Object.assign({}, state.get('timeStats'));
+      const newStats = {...state.get('timeStats')};
       for (const key of Object.keys(action.stats)) {
+        if (key === 'started' && (action.stats[key] || action.stats[key] === null) && !newStats[key]) {
+          state = state.set('records', []);
+        }
         newStats[key] = action.stats[key];
-      }
-      if (action.stats.started || action.stats.started === null) {
-        state = state.set('records', []);
       }
       return updateMeasureTime(state.set('timeStats', newStats));
     }

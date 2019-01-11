@@ -13,14 +13,20 @@ export function intervalToString(time, add = true) {
   if (days) {
     return `${days} days${postfix}`;
   }
+  if (hours === 1) {
+    return `1 hour${postfix}`;
+  }
   if (hours) {
     return `${hours} hours${postfix}`;
+  }
+  if (minutes === 1) {
+    return `1 minute${postfix}`;
   }
   if (minutes) {
     return `${minutes} minutes${postfix}`;
   }
-  if (seconds < 30) {
-    return `half a minute$${postfix}`;
+  if (seconds > 30) {
+    return `half a minute${postfix}`;
   }
   if (seconds > 3) {
     return `${seconds} seconds${postfix}`;

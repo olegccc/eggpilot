@@ -934,9 +934,9 @@ bytes@3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/bytes/-/bytes-3.0.0.tgz#d32815404d689699f85a4ea4fa8755dd13a96048"
 
-c3@^0.6.7:
-  version "0.6.7"
-  resolved "https://registry.npmjs.org/c3/-/c3-0.6.7.tgz#a11b95a9b0be9c5e43075723e3c72e3f3acb7407"
+c3@^0.6.12:
+  version "0.6.12"
+  resolved "https://registry.npmjs.org/c3/-/c3-0.6.12.tgz#2f88a44f643aa0cdd804cfcbc06ce6c4ec7208b9"
   dependencies:
     d3 "^5.0.0"
 

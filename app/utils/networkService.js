@@ -131,6 +131,10 @@ class NetworkService {
 
     if (_.isString(event.data)) {
       const parsed = JSON.parse(event.data);
+      if (parsed.timeStats && parsed.records) {
+        this._onTextData('timeStats', parsed.timeStats);
+        delete parsed.timeStats;
+      }
       _.each(parsed, (value, key) => {
         this._onTextData(key, value);
       });

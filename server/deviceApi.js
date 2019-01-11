@@ -123,6 +123,7 @@ const MINIMUM_MEASURE_TIME = 60000;
       newMeasure: {
         temperature,
         humidity,
+        time: time-started
       }
     }));
     return {
