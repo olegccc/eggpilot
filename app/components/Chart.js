@@ -97,6 +97,8 @@ class Chart extends React.Component {
             },
             x: {
               tick: {
+                fit: true,
+                count: 5,
                 format: function(x) {
                   x = Math.floor(x/1000);
                   const sec = x % 60;
