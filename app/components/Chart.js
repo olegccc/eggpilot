@@ -65,6 +65,9 @@ class Chart extends React.Component {
               'Temperature': 'y2'
             }
           },
+          subchart: {
+            show: true
+          },
           color: {
             pattern: ['rgb(11, 216, 11)', 'rgb(67,180,236)']
           },
